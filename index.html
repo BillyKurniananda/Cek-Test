@@ -1,0 +1,2412 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>KOL Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--f:'Roboto',sans-serif;--fm:'Roboto Mono',monospace;--r:10px;--rl:16px;--rxl:22px;--sw:240px;--swm:60px;--th:54px;--ease:.18s ease}
+[data-theme="dark"]{--bg:#1c1c1e;--bg1:#242426;--bg2:#2c2c2e;--bg3:#38383a;--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);--t:#f2f2f7;--t2:#aeaeb2;--t3:#636366;--acc:#ff9f0a;--accs:rgba(255,159,10,.13);--acch:#ffb340;--grn:#32d74b;--grns:rgba(50,215,75,.13);--red:#ff453a;--reds:rgba(255,69,58,.13);--blu:#0a84ff;--blus:rgba(10,132,255,.13);--pur:#bf5af2;--purs:rgba(191,90,242,.13);--yel:#ffd60a;--yels:rgba(255,214,10,.13);--teal:#5ac8fa;--teals:rgba(90,200,250,.13);--sb:#161618;--sh:0 4px 24px rgba(0,0,0,.45);--shl:0 12px 48px rgba(0,0,0,.65)}
+[data-theme="light"]{--bg:#f2f2f7;--bg1:#ffffff;--bg2:#f9f9f9;--bg3:#e5e5ea;--bd:rgba(0,0,0,.07);--bd2:rgba(0,0,0,.13);--t:#1c1c1e;--t2:#48484a;--t3:#8e8e93;--acc:#ff9f0a;--accs:rgba(255,159,10,.11);--acch:#e6800a;--grn:#34c759;--grns:rgba(52,199,89,.11);--red:#ff3b30;--reds:rgba(255,59,48,.11);--blu:#007aff;--blus:rgba(0,122,255,.11);--pur:#af52de;--purs:rgba(175,82,222,.11);--yel:#ff9500;--yels:rgba(255,149,0,.11);--teal:#5ac8fa;--teals:rgba(90,200,250,.11);--sb:#e9e9ec;--sh:0 2px 12px rgba(0,0,0,.08);--shl:0 8px 32px rgba(0,0,0,.14)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{font-family:var(--f);background:var(--bg);color:var(--t);min-height:100vh;overflow-x:hidden;transition:background var(--ease),color var(--ease)}
+input,select,textarea,button{font-family:var(--f)}
+input[type=file]{display:none}
+::-webkit-scrollbar{width:4px;height:4px}
+.vt-thumb{transition:transform var(--ease),box-shadow var(--ease)}.vt-thumb:hover{transform:scale(1.08);box-shadow:var(--sh)}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+
+/* LOGIN */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.lc{width:100%;max-width:380px}
+.lc-logo{text-align:center;margin-bottom:32px}
+.lc-logo h1{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.lc-logo h1 span{color:var(--acc)}
+.lc-logo p{font-size:12px;color:var(--t3);margin-top:3px;font-family:var(--fm)}
+.lc-box{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rxl);padding:32px;box-shadow:var(--sh)}
+.lc-box h2{font-size:18px;font-weight:600;margin-bottom:4px}
+.lc-box p{font-size:13px;color:var(--t2);margin-bottom:22px}
+.th-tog{text-align:center;margin-top:14px;font-size:12px;color:var(--t3);cursor:pointer;user-select:none}
+.th-tog:hover{color:var(--t2)}
+.lerr{display:none;background:var(--reds);border:1px solid var(--red);border-radius:var(--r);padding:9px 13px;font-size:12px;color:var(--red);margin-top:10px;font-family:var(--fm)}
+
+/* FIELD */
+.f{margin-bottom:14px}
+.f label{display:block;font-size:11px;font-weight:500;letter-spacing:.6px;text-transform:uppercase;color:var(--t3);margin-bottom:6px;font-family:var(--fm)}
+.f label .req{color:var(--red);margin-left:2px}
+.f input,.f select,.f textarea{width:100%;background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;color:var(--t);font-size:14px;outline:none;transition:border-color var(--ease),box-shadow var(--ease)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--accs)}
+.f select option{background:var(--bg2)}
+.f textarea{resize:vertical;min-height:70px;font-size:13px}
+.f-err{border-color:var(--red)!important;box-shadow:0 0 0 3px var(--reds)!important}
+.f-err-msg{font-size:11px;color:var(--red);margin-top:4px;display:none;font-family:var(--fm)}
+.fmb{margin-bottom:14px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:14px}
+.fr2 .f{margin-bottom:0}
+
+/* SKU DROPDOWN SEARCH */
+.sku-wrap{position:relative}
+.sku-drop{position:fixed;background:var(--bg1);border:1px solid var(--bd2);border-radius:var(--r);z-index:9000;max-height:200px;overflow-y:auto;box-shadow:var(--shl);display:none;min-width:200px}
+.sku-drop.open{display:block}
+.sku-opt{padding:9px 13px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--bd);transition:background var(--ease)}
+.sku-opt:hover{background:var(--accs);color:var(--acc)}
+.sku-opt:last-child{border-bottom:none}
+.sku-opt .sku-name{font-weight:500}
+.sku-opt .sku-sub{font-size:11px;color:var(--t3);font-family:var(--fm)}
+.sku-none{padding:9px 13px;font-size:12px;color:var(--t3)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:var(--r);font-family:var(--f);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--ease);white-space:nowrap;padding:9px 18px}
+.btn-pri{background:var(--acc);color:#fff}.btn-pri:hover{background:var(--acch);transform:translateY(-1px);box-shadow:0 4px 14px rgba(255,159,10,.3)}
+.btn-sec{background:var(--bg2);color:var(--t);border:1px solid var(--bd2)}.btn-sec:hover{border-color:var(--acc);color:var(--acc)}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--bd)}.btn-ghost:hover{border-color:var(--bd2);color:var(--t)}
+.btn-danger{background:var(--reds);color:var(--red);border:1px solid transparent}.btn-danger:hover{background:var(--red);color:#fff}
+.btn-success{background:var(--grns);color:var(--grn);border:1px solid transparent}.btn-success:hover{background:var(--grn);color:#fff}
+.btn-wa{background:#25d366;color:#fff}.btn-wa:hover{background:#1ebe5a}
+.btn-full{width:100%}
+.btn-sm{padding:6px 13px;font-size:12px;border-radius:7px}
+.btn-xs{padding:4px 9px;font-size:11px;border-radius:5px}
+
+/* APP SHELL */
+#appPage{display:none}
+.layout{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sb{width:var(--sw);min-height:100vh;background:var(--sb);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;position:fixed;left:0;top:0;bottom:0;z-index:200;overflow:hidden;transition:width .22s ease}
+.sb.mini{width:var(--swm)}
+.sb-top{display:flex;align-items:center;justify-content:space-between;padding:14px 12px;border-bottom:1px solid var(--bd);min-height:var(--th);flex-shrink:0}
+.sb-brand{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;opacity:1;transition:opacity .15s}.sb-brand span{color:var(--acc)}
+.sb.mini .sb-brand{opacity:0;width:0}
+.sb-tog{background:transparent;border:1px solid var(--bd);color:var(--t3);border-radius:6px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all var(--ease);flex-shrink:0}
+.sb-tog:hover{color:var(--t);border-color:var(--bd2)}
+.sb-user{padding:12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;overflow:hidden;flex-shrink:0}
+.uph{width:34px;height:34px;border-radius:50%;background:var(--accs);color:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;overflow:hidden}
+.uph img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.ui{overflow:hidden;white-space:nowrap}
+.un{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.ur{font-size:10px;color:var(--t3);font-family:var(--fm);text-transform:uppercase;letter-spacing:.4px}
+.sb-nav{flex:1;padding:8px 6px;overflow-y:auto;overflow-x:hidden}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--r);cursor:pointer;transition:all var(--ease);white-space:nowrap;color:var(--t2);font-size:13px;font-weight:400;margin-bottom:1px;position:relative;user-select:none}
+.ni:hover{background:var(--bg1);color:var(--t)}
+.ni.active{background:var(--accs);color:var(--acc);font-weight:500}
+.ni-ic{font-size:17px;flex-shrink:0;width:20px;text-align:center}
+.ni-lb{opacity:1;transition:opacity .15s;overflow:hidden;text-overflow:ellipsis}
+.sb.mini .ni-lb{opacity:0;width:0}
+.ni-tip{display:none;position:absolute;left:calc(var(--swm)+6px);background:var(--bg2);border:1px solid var(--bd2);color:var(--t);padding:5px 11px;border-radius:6px;font-size:12px;white-space:nowrap;pointer-events:none;box-shadow:var(--sh);z-index:999}
+.sb.mini .ni:hover .ni-tip{display:block}
+.sb-bot{padding:8px 6px;border-top:1px solid var(--bd);flex-shrink:0}
+
+/* MAIN */
+.mw{margin-left:var(--sw);flex:1;transition:margin-left .22s ease;min-width:0}
+.mw.mini{margin-left:var(--swm)}
+.topbar{height:var(--th);background:var(--bg1);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100}
+.topbar-t{font-size:16px;font-weight:600}
+.topbar-r{display:flex;align-items:center;gap:8px}
+.theme-btn{background:var(--bg2);border:1px solid var(--bd);color:var(--t2);border-radius:6px;padding:5px 11px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:5px;transition:all var(--ease);font-family:var(--f)}
+.theme-btn:hover{color:var(--t);border-color:var(--bd2)}
+.mc{padding:24px}
+.page{display:none}
+.page.active{display:block}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:14px;flex-wrap:wrap}
+.ph-l h2{font-size:20px;font-weight:600}
+.ph-l p{font-size:12px;color:var(--t2);margin-top:3px}
+.ph-r{display:flex;gap:8px;flex-wrap:wrap}
+
+/* DASHBOARD */
+.dash-greet{margin-bottom:22px}
+.dash-greet h1{font-size:24px;font-weight:700}
+.dash-greet h1 em{font-style:normal;color:var(--acc)}
+.dash-greet p{font-size:13px;color:var(--t2);margin-top:3px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.sc{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rl);padding:18px;transition:all var(--ease);position:relative;overflow:hidden;cursor:default}
+.sc:hover{box-shadow:var(--sh);transform:translateY(-2px)}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--rl) var(--rl) 0 0}
+.sc.c-org::after{background:var(--acc)}.sc.c-grn::after{background:var(--grn)}.sc.c-blu::after{background:var(--blu)}.sc.c-red::after{background:var(--red)}.sc.c-pur::after{background:var(--pur)}
+.sc-em{font-size:24px;margin-bottom:10px}.sc-val{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;margin-bottom:4px}.sc-lbl{font-size:12px;color:var(--t2)}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:24px}
+.chart-card{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rl);padding:20px}
+.chart-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.chart-title{font-size:14px;font-weight:600}
+.chart-wrap{position:relative;height:200px}
+.lb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px}
+.lbc{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rl);padding:16px;display:flex;align-items:center;gap:12px;transition:box-shadow var(--ease)}
+.lbc:hover{box-shadow:var(--sh)}
+.lbc-rank{font-size:22px;font-weight:700;width:30px;text-align:center;flex-shrink:0}
+.lbc-stat{text-align:right;flex-shrink:0}.lbc-num{font-size:16px;font-weight:700}.lbc-sub{font-size:10px;color:var(--t3);font-family:var(--fm)}
+.lbc-info{flex:1;min-width:0}.lbc-name{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lbc-dept{font-size:11px;color:var(--t3);font-family:var(--fm)}
+.ds-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* TABLE */
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sbox{position:relative;flex:1;min-width:180px}
+.sbox input{width:100%;background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);padding:8px 12px 8px 34px;color:var(--t);font-size:13px;outline:none;transition:border-color var(--ease)}
+.sbox input:focus{border-color:var(--acc)}
+.sbox-ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:14px;pointer-events:none}
+.fsel{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--r);padding:8px 12px;color:var(--t);font-size:13px;outline:none;cursor:pointer;transition:border-color var(--ease);flex-shrink:0}
+.fsel:focus{border-color:var(--acc)}
+.tcard{background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden}
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{border-bottom:1px solid var(--bd);background:var(--bg2)}
+th{padding:10px 14px;text-align:left;font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--bd);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:background var(--ease)}
+tbody tr:hover td{background:var(--bg2)}
+.mono{font-family:var(--fm);font-size:11px}
+.tag{display:inline-block;background:var(--bg3);color:var(--t2);padding:2px 7px;border-radius:4px;font-family:var(--fm);font-size:11px}
+
+/* BADGES */
+.bdg{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;font-size:11px;font-family:var(--fm);font-weight:500;white-space:nowrap}
+.bdg-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.b-ship{background:var(--grns);color:var(--grn)}.b-ship .bdg-dot{background:var(--grn)}
+.b-tbs{background:var(--yels);color:var(--yel)}.b-tbs .bdg-dot{background:var(--yel)}
+.b-rec{background:var(--blus);color:var(--blu)}.b-rec .bdg-dot{background:var(--blu)}
+.b-wait{background:var(--purs);color:var(--pur)}.b-wait .bdg-dot{background:var(--pur)}
+.b-up{background:var(--accs);color:var(--acc)}.b-up .bdg-dot{background:var(--acc)}
+.b-sa{background:var(--reds);color:var(--red)}.b-sa .bdg-dot{background:var(--red)}
+.b-en{background:var(--blus);color:var(--blu)}.b-en .bdg-dot{background:var(--blu)}
+.b-spec{background:var(--grns);color:var(--grn)}.b-spec .bdg-dot{background:var(--grn)}
+
+/* STATS CELL */
+.sp{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;font-family:var(--fm);font-size:11px;background:var(--bg2);border:1px solid var(--bd);white-space:nowrap}
+.sp.lk{border-color:rgba(255,69,58,.3);color:var(--red)}
+.sp.vw{border-color:rgba(10,132,255,.3);color:var(--blu)}
+.sp.cm{border-color:rgba(50,215,75,.3);color:var(--grn)}
+.sp.loading{color:var(--t3);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.rf-btn-row{display:inline-flex;align-items:center;gap:3px;background:transparent;border:1px solid var(--bd);color:var(--t3);font-family:var(--fm);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;transition:all var(--ease);white-space:nowrap}
+.rf-btn-row:hover{border-color:var(--acc);color:var(--acc)}
+.rf-btn-row:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+
+.emp{text-align:center;padding:52px 20px;color:var(--t3)}
+.emp-em{font-size:36px;margin-bottom:12px}.emp-t{font-size:15px;font-weight:500;color:var(--t2);margin-bottom:4px}.emp-s{font-size:12px}
+.acts{display:flex;gap:4px}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);z-index:500;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;pointer-events:none;transition:opacity var(--ease)}
+.ov.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg1);border:1px solid var(--bd2);border-radius:var(--rxl);padding:28px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;overflow-x:visible;transform:translateY(14px) scale(.98);transition:transform .22s ease;position:relative;box-shadow:var(--shl)}
+.ov.open .modal{transform:translateY(0) scale(1)}
+.modal.wide{max-width:680px}
+.modal.fullish{max-width:760px}
+.mc-title{font-size:17px;font-weight:600;margin-bottom:20px;padding-right:28px}
+.mc-close{position:absolute;top:16px;right:16px;background:var(--bg2);border:1px solid var(--bd);color:var(--t3);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all var(--ease)}
+.mc-close:hover{color:var(--t);border-color:var(--bd2)}
+.mfoot{display:flex;gap:8px;margin-top:20px;justify-content:flex-end;flex-wrap:wrap}
+
+/* MULTI-STEP */
+.steps-bar{display:flex;align-items:center;margin-bottom:26px;gap:0}
+.step-item{display:flex;align-items:center;gap:6px;flex:1}
+.step-item:last-child{flex:0}
+.step-circle{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:2px solid var(--bd2);color:var(--t3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;transition:all var(--ease)}
+.step-circle.done{background:var(--grn);border-color:var(--grn);color:#fff}
+.step-circle.cur{background:var(--acc);border-color:var(--acc);color:#fff}
+.step-label{font-size:11px;color:var(--t3);white-space:nowrap;display:none}
+@media(min-width:500px){.step-label{display:block}}
+.step-line{flex:1;height:2px;background:var(--bd2);margin:0 4px;transition:background var(--ease)}
+.step-line.done{background:var(--grn)}
+.step-panel{display:none}
+.step-panel.active{display:block}
+.step-saved{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--grn);font-family:var(--fm);padding:3px 8px;background:var(--grns);border-radius:4px}
+
+/* PRINT PREVIEW */
+.print-card{background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.print-card h4{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--t2)}
+.print-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.print-row span:first-child{color:var(--t3)}
+
+/* TIMELINE */
+.tl{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:14px;position:relative}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:2px;background:var(--bd2)}
+.tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:2px solid var(--bd2);background:var(--bg2);transition:all var(--ease);z-index:1}
+.tl-dot.done{border-color:var(--grn);background:var(--grns);color:var(--grn)}
+.tl-dot.active{border-color:var(--acc);background:var(--accs);color:var(--acc);box-shadow:0 0 0 4px var(--accs)}
+.tl-dot.pending{border-color:var(--bd2);background:var(--bg2);color:var(--t3)}
+.tl-body{flex:1;padding-bottom:20px}
+.tl-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.tl-step{font-size:10px;font-family:var(--fm);color:var(--t3);font-weight:500}
+.tl-name{font-size:13px;font-weight:600}
+.tl-ts{font-size:11px;color:var(--t3);font-family:var(--fm)}
+.tl-note{font-size:12px;color:var(--t2);margin-top:4px;background:var(--bg2);border-radius:6px;padding:8px 10px;word-break:break-word}
+
+/* PHOTO */
+.ph-up{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ph-prev{width:58px;height:58px;border-radius:50%;background:var(--accs);border:2px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--acc);overflow:hidden;flex-shrink:0;cursor:pointer;transition:border-color var(--ease)}
+.ph-prev:hover{border-color:var(--acc)}
+.ph-prev img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.ph-info strong{display:block;font-size:13px;margin-bottom:2px}
+.ph-info span{font-size:11px;color:var(--t3)}
+
+/* DROP ZONE */
+.dz{border:2px dashed var(--bd2);border-radius:var(--rl);padding:32px;text-align:center;cursor:pointer;transition:all var(--ease);margin-bottom:16px}
+.dz:hover,.dz.dov{border-color:var(--acc);background:var(--accs)}
+.dz-ic{font-size:32px;margin-bottom:8px}.dz-t{font-size:14px;font-weight:500;margin-bottom:3px}.dz-s{font-size:11px;color:var(--t3);font-family:var(--fm)}
+
+/* TOAST */
+#toastWrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none}
+.toast{background:var(--bg1);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 16px;font-size:13px;max-width:340px;box-shadow:var(--sh);opacity:0;transform:translateX(18px);transition:all .28s ease;pointer-events:none;display:flex;align-items:center;gap:7px}
+.toast.show{opacity:1;transform:translateX(0)}
+.toast.hide{opacity:0;transform:translateX(18px)}
+.toast.ok{border-color:var(--grn)}.toast.err{border-color:var(--red)}.toast.info{border-color:var(--acc)}
+
+/* INFO BOX */
+.info-box{border-radius:var(--r);padding:12px 14px;font-size:12px;color:var(--t2);margin-bottom:14px}
+.info-box.warn{background:var(--accs);border:1px solid rgba(255,159,10,.2)}
+.info-box.ok{background:var(--grns);border:1px solid rgba(50,215,75,.2)}
+.info-box.err{background:var(--reds);border:1px solid rgba(255,69,58,.2)}
+
+/* ROLE CHIP */
+.role-chip{display:inline-block;font-size:10px;font-family:var(--fm);padding:2px 7px;border-radius:4px;font-weight:500}
+.rc-sa{background:var(--reds);color:var(--red)}
+.rc-en{background:var(--blus);color:var(--blu)}
+.rc-sp{background:var(--grns);color:var(--grn)}
+</style>
+</head>
+<body>
+<div id="toastWrap"></div>
+<!-- SKU dropdown — body-level so modal overflow can never clip it -->
+<div class="sku-drop" id="skuDrop"></div>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="lc">
+    <div class="lc-logo"><h1>KOL <span>Manager</span></h1><p>// specialist campaign dashboard</p></div>
+    <div class="lc-box">
+      <h2>Welcome back 👋</h2>
+      <p>Sign in to continue</p>
+      <div class="f"><label>Username</label><input type="text" id="loginUser" placeholder="username" autocomplete="off"></div>
+      <div class="f"><label>Password</label><input type="password" id="loginPass" placeholder="password"></div>
+      <button class="btn btn-pri btn-full" style="margin-top:8px" onclick="doLogin()">Sign in →</button>
+      <div class="lerr" id="loginErr">⚠ Invalid username or password</div>
+    </div>
+    <div class="th-tog" onclick="toggleTheme()"><span id="thIco">☀️</span> Switch to <span id="thLbl">light</span> mode</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appPage">
+<div class="layout">
+<aside class="sb" id="sb">
+  <div class="sb-top">
+    <div class="sb-brand">KOL <span>Mgr</span></div>
+    <button class="sb-tog" onclick="toggleSB()">☰</button>
+  </div>
+  <div class="sb-user">
+    <div class="uph" id="sbPhoto">U</div>
+    <div class="ui"><div class="un" id="sbName">User</div><div class="ur" id="sbRole">—</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="ni active" data-p="dashboard" onclick="gotoPage('dashboard',this)"><span class="ni-ic">🏠</span><span class="ni-lb">Dashboard</span><span class="ni-tip">Dashboard</span></div>
+    <div class="ni" data-p="kol" onclick="gotoPage('kol',this)"><span class="ni-ic">🎯</span><span class="ni-lb">KOL Specialist</span><span class="ni-tip">KOL Specialist</span></div>
+    <div class="ni" data-p="items" onclick="gotoPage('items',this)"><span class="ni-ic">📦</span><span class="ni-lb">Item List</span><span class="ni-tip">Item List</span></div>
+    <div class="ni adm-ni" data-p="users" onclick="gotoPage('users',this)" style="display:none"><span class="ni-ic">👥</span><span class="ni-lb">Users</span><span class="ni-tip">Users</span></div>
+    <div class="ni adm-ni" data-p="sales" onclick="gotoPage('sales',this)" style="display:none"><span class="ni-ic">📊</span><span class="ni-lb">Sales & Analytics</span><span class="ni-tip">Sales & Analytics</span></div>
+    <div class="ni adm-ni" data-p="settings" onclick="gotoPage('settings',this)" style="display:none"><span class="ni-ic">⚙️</span><span class="ni-lb">Settings</span><span class="ni-tip">Settings</span></div>
+  </nav>
+  <div class="sb-bot">
+    <div class="ni" onclick="toggleTheme()"><span class="ni-ic" id="thNavIc">☀️</span><span class="ni-lb" id="thNavLb">Light mode</span><span class="ni-tip" id="thNavTip">Light mode</span></div>
+    <div class="ni" onclick="doLogout()"><span class="ni-ic">🚪</span><span class="ni-lb">Logout</span><span class="ni-tip">Logout</span></div>
+  </div>
+</aside>
+
+<div class="mw" id="mw">
+  <div class="topbar">
+    <div class="topbar-t" id="tbarT">Dashboard</div>
+    <div class="topbar-r">
+      <button class="theme-btn" onclick="toggleTheme()"><span id="thTopIc">☀️</span><span id="thTopLb">Light</span></button>
+    </div>
+  </div>
+  <div class="mc">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="p-dashboard">
+    <div class="dash-greet"><h1>Halo, <em id="grName">kamu</em> <span id="grEm">👋</span></h1><p id="grDate">—</p></div>
+    <div class="stats-grid">
+      <div class="sc c-org"><div class="sc-em">📋</div><div class="sc-val" id="d-total">0</div><div class="sc-lbl">Total Entries</div></div>
+      <div class="sc c-grn"><div class="sc-em">✅</div><div class="sc-val" id="d-up">0</div><div class="sc-lbl">Uploaded</div></div>
+      <div class="sc c-blu"><div class="sc-em">👁️</div><div class="sc-val" id="d-views">—</div><div class="sc-lbl">Total Views</div></div>
+      <div class="sc c-red"><div class="sc-em">❤️</div><div class="sc-val" id="d-likes">—</div><div class="sc-lbl">Total Likes</div></div>
+      <div class="sc c-pur"><div class="sc-em">💬</div><div class="sc-val" id="d-cmts">—</div><div class="sc-lbl">Total Comments</div></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:16px">
+      <div class="chart-top">
+        <div class="chart-title">📊 Filter Dashboard</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select class="fsel" id="dashSpec" onchange="updateDash()" style="font-size:12px;padding:4px 10px"><option value="">Semua Specialist</option></select>
+          <select class="fsel" id="dashStat" onchange="updateDash()" style="font-size:12px;padding:4px 10px"><option value="">Semua Status</option><option>To Be Shipped</option><option>Shipped</option><option>Received</option><option>Waiting for Upload</option><option>Uploaded</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card"><div class="chart-top"><div class="chart-title">📅 Entry/Bulan</div></div><div class="chart-wrap"><canvas id="chE"></canvas></div></div>
+      <div class="chart-card"><div class="chart-top"><div class="chart-title">👁️ Views/Bulan</div></div><div class="chart-wrap"><canvas id="chV"></canvas></div></div>
+      <div class="chart-card"><div class="chart-top"><div class="chart-title">❤️ Likes/Bulan</div></div><div class="chart-wrap"><canvas id="chL"></canvas></div></div>
+      <div class="chart-card"><div class="chart-top"><div class="chart-title">🎯 Status</div></div><div class="chart-wrap"><canvas id="chS"></canvas></div></div>
+    </div>
+    <div class="ds-title">🏆 KOL Leaderboard</div>
+    <div class="lb-grid" id="lbGrid"><div style="color:var(--t3);font-size:13px;padding:14px 0">No data yet 😊</div></div>
+  </div>
+
+  <!-- KOL -->
+  <div class="page" id="p-kol">
+    <div class="ph">
+      <div class="ph-l"><h2>KOL Specialist 🎯</h2><p>Track shipments & content</p></div>
+      <div class="ph-r">
+        <div id="rfAllWrap" style="display:none"><button class="btn btn-sec btn-sm" onclick="refreshAll()">↻ Refresh All Stats</button></div>
+        <button class="btn btn-pri btn-sm" onclick="openAddKOL()">+ Add entry</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="sbox"><span class="sbox-ic">🔍</span><input id="kolSrch" placeholder="Cari TikTok, SKU, ID..." oninput="renderKOL()"></div>
+      <select class="fsel" id="kolSF" onchange="renderKOL()"><option value="">Semua status</option><option>Shipped</option><option>To Be Shipped</option><option>Received</option><option>Waiting for Upload</option><option>Uploaded</option></select>
+    </div>
+    <div class="tcard">
+      <div class="twrap">
+        <table>
+          <thead><tr>
+            <th>Specialist</th><th>TikTok / SKU</th><th>Status</th><th>🎬 Video</th>
+            <th>❤️ Likes</th><th>💬 Comments</th><th>👁️ Views</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="kolBody"></tbody>
+        </table>
+      </div>
+      <div class="emp" id="kolEmp" style="display:none"><div class="emp-em">📭</div><div class="emp-t">No entries yet</div><div class="emp-s">Click "+ Add entry" to get started</div></div>
+    </div>
+  </div>
+
+  <!-- ITEMS -->
+  <div class="page" id="p-items">
+    <div class="ph">
+      <div class="ph-l"><h2>Item List 📦</h2><p>Products shipped to KOL creators</p></div>
+      <div class="ph-r">
+        <button class="btn btn-sec btn-sm" onclick="document.getElementById('csvFile').click()">↑ Import CSV</button>
+        <input type="file" id="csvFile" accept=".csv" onchange="importCSV(event)">
+        <button class="btn btn-pri btn-sm" onclick="openAddItem()">+ Add Item</button>
+      </div>
+    </div>
+    <div class="toolbar"><div class="sbox"><span class="sbox-ic">🔍</span><input id="itemSrch" placeholder="Cari item, SKU..." oninput="renderItems()"></div></div>
+    <div class="dz" id="dz" onclick="document.getElementById('csvFile').click()"><div class="dz-ic">📂</div><div class="dz-t">Drop CSV here or click to upload</div><div class="dz-s">columns: item_name, sku, color</div></div>
+    <div class="tcard">
+      <div class="twrap">
+        <table><thead><tr><th>#</th><th>Item Name</th><th>SKU</th><th>Color</th><th>Actions</th></tr></thead><tbody id="itemBody"></tbody></table>
+      </div>
+      <div class="emp" id="itemEmp" style="display:none"><div class="emp-em">📦</div><div class="emp-t">Belum ada item</div><div class="emp-s">Tambah manual atau import CSV</div></div>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div class="page" id="p-users">
+    <div class="ph"><div class="ph-l"><h2>User Management 👥</h2><p>Manage team accounts</p></div><div class="ph-r"><button class="btn btn-pri btn-sm" onclick="openAddUser()">+ Add User</button></div></div>
+    <div class="tcard">
+      <div class="twrap">
+        <table><thead><tr><th>Photo</th><th>Name</th><th>Username</th><th>Dept</th><th>Role</th><th>Actions</th></tr></thead><tbody id="usersBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="p-settings">
+    <div class="ph"><div class="ph-l"><h2>Settings ⚙️</h2><p>Application configuration</p></div></div>
+
+    <!-- SECTION 1: API -->
+    <div class="tcard" style="padding:24px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="font-size:20px">🎵</span>
+        <div>
+          <div style="font-size:15px;font-weight:600">TikTok Stats API</div>
+          <div style="font-size:12px;color:var(--t2);margin-top:2px">RapidAPI key for fetching likes, views & comments</div>
+        </div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:12px 14px;margin:14px 0;font-size:12px;color:var(--t3);font-family:var(--fm);line-height:1.8">
+        Provider: <strong style="color:var(--t2)">TikTok Video No Watermark</strong> — rapidapi.com<br>
+        Endpoint: <span style="background:var(--bg3);padding:2px 6px;border-radius:4px">GET /?url={videoUrl}&hd=1</span>
+      </div>
+      <div class="f fmb"><label>X-RapidAPI-Key</label><input type="text" id="apiK" placeholder="Paste your RapidAPI key here..."></div>
+      <button class="btn btn-pri" onclick="saveKey()">💾 Save API Key</button>
+    </div>
+
+    <!-- SECTION 2: WA TEMPLATE -->
+    <div class="tcard" style="padding:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">📱</span>
+          <div>
+            <div style="font-size:15px;font-weight:600">WhatsApp Template</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:2px">Auto-message when sending notifications to KOL</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="resetWATemplate()">↺ Reset to default</button>
+      </div>
+
+      <div style="background:var(--bg2);border-radius:var(--r);padding:12px 14px;margin:14px 0;font-size:12px;color:var(--t3);font-family:var(--fm);line-height:1.7">
+        Available variables:<br>
+        <span style="color:var(--acc)">{{nama}}</span> — nama penerima &nbsp;|&nbsp;
+        <span style="color:var(--acc)">{{tiktok}}</span> — username TikTok<br>
+        <span style="color:var(--acc)">{{produk}}</span> — nama produk/SKU &nbsp;|&nbsp;
+        <span style="color:var(--acc)">{{alamat}}</span> — alamat pengiriman<br>
+        <span style="color:var(--acc)">{{ekspedisi}}</span> — nama ekspedisi &nbsp;|&nbsp;
+        <span style="color:var(--acc)">{{resi}}</span> — nomor resi<br>
+        <span style="color:var(--acc)">{{pengirim}}</span> — nama akunmu &nbsp;|&nbsp;
+        <span style="color:var(--acc)">{{username}}</span> — username akunmu
+      </div>
+
+      <div class="f fmb">
+        <label>Message Template</label>
+        <textarea id="waTplInput" rows="12" style="font-size:13px;font-family:var(--fm);line-height:1.7" placeholder="Write your WhatsApp message template here..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-pri" onclick="saveWATemplate()">💾 Save Template</button>
+        <button class="btn btn-wa btn-sm" onclick="previewWA()">👁 Preview</button>
+      </div>
+
+      <!-- PREVIEW PANEL -->
+      <div id="waTplPreview" style="display:none;margin-top:16px;background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);padding:14px">
+        <div style="font-size:11px;font-family:var(--fm);color:var(--t3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Message preview</div>
+        <div id="waTplPreviewText" style="font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--t2)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES & ANALYTICS PAGE -->
+  <div class="page" id="p-sales">
+    <div class="ph">
+      <div class="ph-l"><h2>Sales & Analytics 📊</h2><p>Import TikTok creator order reports, track GMV & commissions</p></div>
+      <div class="ph-r">
+        <button class="btn btn-sec btn-sm" onclick="document.getElementById('salesFile').click()">↑ Import Excel</button>
+        <input type="file" id="salesFile" accept=".xlsx,.xls,.csv" onchange="importSales(event)">
+        <button class="btn btn-danger btn-sm" onclick="clearSalesData()">🗑 Clear Data</button>
+      </div>
+    </div>
+
+    <!-- UPLOAD ZONE -->
+    <div class="dz" id="salesDz" onclick="document.getElementById('salesFile').click()" style="margin-bottom:16px">
+      <div class="dz-ic">📂</div>
+      <div class="dz-t">Drop TikTok creator order Excel file here</div>
+      <div class="dz-s">Supports .xlsx — Order ID deduplication is automatic</div>
+    </div>
+
+    <!-- IMPORT STATUS BAR -->
+    <div id="salesStatus" style="display:none;background:var(--grns);border:1px solid rgba(50,215,75,.2);border-radius:var(--r);padding:10px 16px;font-size:12px;font-family:var(--fm);color:var(--grn);margin-bottom:16px;display:flex;align-items:center;gap:8px"></div>
+
+    <!-- INFO BANNER -->
+    <div style="background:var(--blus);border:1px solid rgba(10,132,255,.2);border-radius:var(--r);padding:10px 16px;margin-bottom:14px;font-size:12px;color:var(--blu);display:flex;align-items:flex-start;gap:8px">
+      <span>ℹ️</span>
+      <span>Only orders whose <strong>Content ID matches a KOL Specialist entry</strong> appear in the Performance table and KPI cards below. The raw orders table shows all imported orders.</span>
+    </div>
+
+    <!-- KPI ROW 1: Core -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-bottom:12px">
+      <div class="sc c-org"><div class="sc-em">💰</div><div class="sc-val" id="sk-gmv">—</div><div class="sc-lbl">Matched GMV (IDR)</div></div>
+      <div class="sc c-grn"><div class="sc-em">📦</div><div class="sc-val" id="sk-orders">0</div><div class="sc-lbl">Matched Orders</div></div>
+      <div class="sc c-teal" style="--c:var(--teal)"><div class="sc-em">🧾</div><div class="sc-val" id="sk-netgmv">—</div><div class="sc-lbl">Net GMV (after refund)</div></div>
+      <div class="sc c-blu"><div class="sc-em">📊</div><div class="sc-val" id="sk-aov">—</div><div class="sc-lbl">AOV <span style="font-size:10px;font-family:var(--fm)">(GMV ÷ Orders)</span></div></div>
+      <div class="sc c-pur"><div class="sc-em">🏆</div><div class="sc-val" id="sk-comm">—</div><div class="sc-lbl">Total Commission</div></div>
+    </div>
+    <!-- KPI ROW 2: Rates -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-bottom:20px">
+      <div class="sc c-red"><div class="sc-em">📈</div><div class="sc-val" id="sk-eng">—</div>
+        <div class="sc-lbl">Avg Eng. Rate
+          <span style="display:block;font-size:10px;font-family:var(--fm);color:var(--t3);margin-top:2px">(Likes+Comments)÷Views</span>
+        </div>
+      </div>
+      <div class="sc c-grn"><div class="sc-em">🎯</div><div class="sc-val" id="sk-cvr">—</div>
+        <div class="sc-lbl">Conversion Rate
+          <span style="display:block;font-size:10px;font-family:var(--fm);color:var(--t3);margin-top:2px">Orders÷Views×100</span>
+        </div>
+      </div>
+      <div class="sc c-org"><div class="sc-em">💸</div><div class="sc-val" id="sk-commrate">—</div>
+        <div class="sc-lbl">Effective Comm. Rate
+          <span style="display:block;font-size:10px;font-family:var(--fm);color:var(--t3);margin-top:2px">Commission÷GMV×100</span>
+        </div>
+      </div>
+      <div class="sc c-pur"><div class="sc-em">🔁</div><div class="sc-val" id="sk-retrate">—</div>
+        <div class="sc-lbl">Return Rate
+          <span style="display:block;font-size:10px;font-family:var(--fm);color:var(--t3);margin-top:2px">Returns÷Orders×100</span>
+        </div>
+      </div>
+      <div class="sc c-teal" style="--c:var(--teal)"><div class="sc-em">👁️</div><div class="sc-val" id="sk-gmvview">—</div>
+        <div class="sc-lbl">GMV per View
+          <span style="display:block;font-size:10px;font-family:var(--fm);color:var(--t3);margin-top:2px">GMV÷Total Views</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="toolbar" style="margin-bottom:14px">
+      <div class="sbox"><span class="sbox-ic">🔍</span><input id="salesSrch" placeholder="Search by content ID, creator, product..." oninput="renderSalesTable()"></div>
+      <select class="fsel" id="salesCreatorF" onchange="renderSalesTable()" style="min-width:160px"><option value="">All Creators</option></select>
+      <select class="fsel" id="salesStatusF" onchange="renderSalesTable()">
+        <option value="">All Order Status</option>
+        <option value="Selesai">Completed</option>
+        <option value="Dibatalkan">Cancelled</option>
+      </select>
+    </div>
+
+    <!-- PER-CONTENT ANALYTICS TABLE -->
+    <div class="ds-title" style="margin-bottom:12px">🎬 Performance by Content</div>
+    <div class="tcard" style="margin-bottom:20px">
+      <div class="twrap">
+        <table id="salesContentTable">
+          <thead><tr>
+            <th>Content ID</th>
+            <th>Creator</th>
+            <th>Specialist</th>
+            <th>Orders</th>
+            <th>GMV (IDR)</th>
+            <th>Net GMV</th>
+            <th>Commission</th>
+            <th>Returns</th>
+            <th>👁️ Views</th>
+            <th>❤️ Likes</th>
+            <th>Eng. Rate <span style="font-weight:400;font-size:9px">(L+C)÷V</span></th>
+            <th>Conv. Rate <span style="font-weight:400;font-size:9px">Ord÷Views</span></th>
+            <th>GMV/View</th>
+          </tr></thead>
+          <tbody id="salesContentBody"></tbody>
+        </table>
+      </div>
+      <div class="emp" id="salesContentEmp">
+        <div class="emp-em">📊</div>
+        <div class="emp-t">No sales data imported</div>
+        <div class="emp-s">Import a TikTok creator order Excel report above</div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-top"><div class="chart-title">💰 GMV by Date</div></div>
+        <div class="chart-wrap"><canvas id="chGMV"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-top"><div class="chart-title">🏆 Top Creators by GMV</div></div>
+        <div class="chart-wrap"><canvas id="chCreators"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-top"><div class="chart-title">📦 Orders by Status</div></div>
+        <div class="chart-wrap"><canvas id="chOrderStatus"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-top"><div class="chart-title">💸 Commission Breakdown</div></div>
+        <div class="chart-wrap"><canvas id="chCommission"></canvas></div>
+      </div>
+    </div>
+
+    <!-- RAW ORDERS TABLE -->
+    <div class="ds-title" style="margin-bottom:12px">📋 All Orders <span id="salesOrderCount" style="font-size:12px;font-weight:400;color:var(--t3);font-family:var(--fm)"></span></div>
+    <div class="tcard">
+      <div class="twrap">
+        <table>
+          <thead><tr>
+            <th>Order ID</th><th>Product</th><th>SKU</th><th>Creator</th>
+            <th>Content ID</th><th>Price (IDR)</th><th>Payment</th><th>Qty</th>
+            <th>Status</th><th>Comm %</th><th>Commission</th><th>Return</th><th>Order Date</th>
+          </tr></thead>
+          <tbody id="salesBody"></tbody>
+        </table>
+      </div>
+      <div class="emp" id="salesEmp">
+        <div class="emp-em">📋</div>
+        <div class="emp-t">No orders imported yet</div>
+        <div class="emp-s">Import an Excel file to see order data here</div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<!-- MODAL: ADD KOL multi-step -->
+<div class="ov" id="addKOLOv">
+<div class="modal fullish">
+  <button class="mc-close" onclick="closeOv('addKOLOv')">✕</button>
+  <div class="mc-title">New KOL Entry ✨</div>
+  <div class="steps-bar" id="stepsBar">
+    <div class="step-item"><div class="step-circle cur" id="sc0">1</div><span class="step-label">KOL Data</span></div>
+    <div class="step-line" id="sl0"></div>
+    <div class="step-item"><div class="step-circle pending" id="sc1">2</div><span class="step-label">Shipping</span></div>
+    <div class="step-line" id="sl1"></div>
+    <div class="step-item"><div class="step-circle pending" id="sc2">3</div><span class="step-label">Tracking</span></div>
+    <div class="step-line" id="sl2"></div>
+    <div class="step-item"><div class="step-circle pending" id="sc3">4</div><span class="step-label">Upload</span></div>
+    <div class="step-line" id="sl3"></div>
+    <div class="step-item" style="flex:0"><div class="step-circle pending" id="sc4">5</div><span class="step-label">Content</span></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step-panel active" id="sp0">
+    <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:14px">📋 Step 1 — Basic Information</div>
+    <div class="fr2">
+      <div class="f"><label>Entry Date <span class="req">*</span></label><input type="date" id="s1Date"></div>
+      <div class="f"><label>KOL Specialist <span class="req">*</span></label><select id="s1Spec"></select></div>
+    </div>
+    <div class="fr2">
+      <div class="f"><label>TikTok Username <span class="req">*</span></label><input type="text" id="s1Tiktok" placeholder="@username"></div>
+      <div class="f"><label>Phone Number <span class="req">*</span></label><input type="text" id="s1Phone" placeholder="+62 8xx xxxx xxxx"></div>
+    </div>
+    <div class="f fmb">
+      <label>Product Code / SKU <span class="req">*</span></label>
+      <div class="sku-wrap">
+        <input type="text" id="s1SkuInput" placeholder="Type product name/SKU..." autocomplete="off" oninput="skuSearch(this.value)" onfocus="skuSearch(this.value)" onblur="setTimeout(()=>closeSku(),200)">
+        <input type="hidden" id="s1Product">
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeOv('addKOLOv')">Cancel</button>
+      <button class="btn btn-pri" onclick="stepSave(0)">Save & Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step-panel" id="sp1">
+    <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:14px">📦 Step 2 — Shipping Address</div>
+    <div class="f fmb"><label>Recipient Name <span class="req">*</span></label><input type="text" id="s2Name" placeholder="Nama lengkap"></div>
+    <div class="f fmb"><label>Phone Number Penerima <span class="req">*</span></label><input type="text" id="s2Phone" placeholder="+62 8xx xxxx xxxx"></div>
+    <div class="f fmb"><label>Full Address <span class="req">*</span></label><textarea id="s2Addr" placeholder="Jalan, RT/RW, Kelurahan, Kecamatan, Kota, Kode Pos..."></textarea></div>
+    <div class="print-card" id="printPrev">
+      <h4>📋 Label Preview</h4>
+      <div class="print-row"><span>To</span><span id="ppName">—</span></div>
+      <div class="print-row"><span>Phone</span><span id="ppPhone">—</span></div>
+      <div class="print-row"><span>Address</span><span id="ppAddr" style="max-width:240px;text-align:right">—</span></div>
+      <div class="print-row"><span>Product</span><span id="ppProd">—</span></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="stepGo(0)">← Back</button>
+      <button class="btn btn-sec" onclick="printLabel()">🖨 Print Label</button>
+      <button class="btn btn-pri" onclick="stepSave(1)">Save & Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step-panel" id="sp2">
+    <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:14px">🚚 Step 3 — Shipment Details</div>
+    <div class="fr2">
+      <div class="f"><label>Courier <span class="req">*</span></label>
+        <select id="s3Exp"><option value="">Pilih ekspedisi</option><option>JNE</option><option>JNT</option><option>SiCepat</option><option>AnterAja</option><option>Ninja Express</option><option>SAP</option><option>TIKI</option><option>Pos Indonesia</option><option>Lainnya</option></select>
+      </div>
+      <div class="f"><label>Tracking No. <span class="req">*</span></label><input type="text" id="s3Resi" placeholder="Nomor resi"></div>
+    </div>
+    <div class="f fmb"><label>Ship Date <span class="req">*</span></label><input type="date" id="s3ShipDate"></div>
+    <div class="info-box warn">📱 After saving, you can <strong>send a WhatsApp notification</strong> automatically to the KOL</div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="stepGo(1)">← Back</button>
+      <button class="btn btn-wa" onclick="waShipping()">📱 Send WA</button>
+      <button class="btn btn-pri" onclick="stepSave(2)">Save & Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step-panel" id="sp3">
+    <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:14px">⏳ Step 4 — Confirm Receipt</div>
+    <div class="f fmb"><label>Date Received <span class="req">*</span></label><input type="date" id="s4RecDate"></div>
+    <div class="f fmb"><label>Notes (optional)</label><textarea id="s4Note" placeholder="Package condition, etc..."></textarea></div>
+    <div class="info-box warn">⚠️ Next status will be → <strong>Waiting for Upload</strong></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="stepGo(2)">← Back</button>
+      <button class="btn btn-pri" onclick="stepSave(3)">Save & Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step-panel" id="sp4">
+    <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:14px">🎬 Step 5 — Content Information</div>
+    <div class="fr2">
+      <div class="f"><label>Content ID <span class="req">*</span></label><input type="text" id="s5ContentId" placeholder="7380xxxx"></div>
+      <div class="f"><label>Upload Date <span class="req">*</span></label><input type="date" id="s5UpDate"></div>
+    </div>
+    <div class="f fmb"><label>TikTok Video Link <span style="color:var(--t3);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(optional — used for video preview)</span></label><input type="url" id="s5Link" placeholder="https://www.tiktok.com/@user/video/..."></div>
+    <div class="info-box ok">✅ Entry complete! Status will be set to <strong>Uploaded</strong></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="stepGo(3)">← Back</button>
+      <button class="btn btn-success" onclick="finalSave()">💾 Finish & Save</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: VIEW TIMELINE -->
+<div class="ov" id="viewKOLOv">
+<div class="modal wide">
+  <button class="mc-close" onclick="closeOv('viewKOLOv')">✕</button>
+  <div class="mc-title" id="viewTitle">Entry Timeline</div>
+  <div id="viewBody"></div>
+  <div class="mfoot" id="viewFoot"></div>
+</div>
+</div>
+
+<!-- MODAL: ADVANCE STATUS -->
+<div class="ov" id="advOv">
+<div class="modal">
+  <button class="mc-close" onclick="closeOv('advOv')">✕</button>
+  <div class="mc-title" id="advTitle">Update Status</div>
+  <div id="advBody"></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeOv('advOv')">Cancel</button><button class="btn btn-pri" id="advBtn">Confirm ✓</button></div>
+</div>
+</div>
+
+<!-- MODAL: EDIT KOL -->
+<div class="ov" id="editKOLOv">
+<div class="modal fullish">
+  <button class="mc-close" onclick="closeOv('editKOLOv')">✕</button>
+  <div class="mc-title">Edit Entry ✏️</div>
+  <input type="hidden" id="eKolId">
+  <!-- Timeline preview in edit -->
+  <div id="editTLPreview" style="margin-bottom:18px"></div>
+  <div class="fr2">
+    <div class="f"><label>Entry Date</label><input type="date" id="eDt"></div>
+    <div class="f"><label>KOL Specialist</label><select id="eSpec"></select></div>
+  </div>
+  <div class="fr2">
+    <div class="f"><label>TikTok</label><input type="text" id="eTt"></div>
+    <div class="f"><label>Phone Number</label><input type="text" id="ePh"></div>
+  </div>
+  <div class="f fmb"><label>Recipient Name</label><input type="text" id="eNm"></div>
+  <div class="f fmb"><label>Address</label><textarea id="eAd"></textarea></div>
+  <div class="fr2">
+    <div class="f"><label>SKU / Product</label><input type="text" id="ePr"></div>
+    <div class="f"><label>Courier</label><input type="text" id="eEx"></div>
+  </div>
+  <div class="fr2">
+    <div class="f"><label>Tracking No.</label><input type="text" id="eRe"></div>
+    <div class="f"><label>Content ID</label><input type="text" id="eCi"></div>
+  </div>
+  <div class="f fmb"><label>Link Video</label><input type="url" id="eLk"></div>
+  <div class="mfoot">
+    <button class="btn btn-ghost" onclick="closeOv('editKOLOv')">Cancel</button>
+    <button class="btn btn-pri" onclick="updateKOL()">Update</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: ADD ITEM -->
+<div class="ov" id="addItemOv"><div class="modal">
+  <button class="mc-close" onclick="closeOv('addItemOv')">✕</button>
+  <div class="mc-title">Add Item 📦</div>
+  <div class="f fmb"><label>Item Name <span class="req">*</span></label><input type="text" id="iNm" placeholder="Product name"></div>
+  <div class="fr2"><div class="f"><label>SKU <span class="req">*</span></label><input type="text" id="iSk" placeholder="SKU-001"></div><div class="f"><label>Color</label><input type="text" id="iCl" placeholder="Red, Black..."></div></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeOv('addItemOv')">Cancel</button><button class="btn btn-pri" onclick="saveItem()">Save</button></div>
+</div></div>
+
+<!-- MODAL: EDIT ITEM -->
+<div class="ov" id="editItemOv"><div class="modal">
+  <button class="mc-close" onclick="closeOv('editItemOv')">✕</button>
+  <div class="mc-title">Edit Item ✏️</div>
+  <input type="hidden" id="eiId">
+  <div class="f fmb"><label>Item Name <span class="req">*</span></label><input type="text" id="eiNm"></div>
+  <div class="fr2"><div class="f"><label>SKU <span class="req">*</span></label><input type="text" id="eiSk"></div><div class="f"><label>Color</label><input type="text" id="eiCl"></div></div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeOv('editItemOv')">Cancel</button><button class="btn btn-pri" onclick="updateItem()">Update</button></div>
+</div></div>
+
+<!-- MODAL: ADD USER -->
+<div class="ov" id="addUserOv"><div class="modal wide">
+  <button class="mc-close" onclick="closeOv('addUserOv')">✕</button>
+  <div class="mc-title">Add User 👤</div>
+  <div class="ph-up">
+    <div class="ph-prev" id="aPrev" onclick="document.getElementById('aPhF').click()">👤</div>
+    <div class="ph-info"><strong>Profile Photo</strong><br><span>Click to upload (optional, max 2MB)</span></div>
+    <input type="file" id="aPhF" accept="image/*" onchange="prevPh(event,'aPrev','aPhD')">
+    <input type="hidden" id="aPhD">
+  </div>
+  <div class="fr2"><div class="f"><label>First Name <span class="req">*</span></label><input type="text" id="uFn" placeholder="First name"></div><div class="f"><label>Last Name</label><input type="text" id="uLn" placeholder="Last name"></div></div>
+  <div class="fr2"><div class="f"><label>Username <span class="req">*</span></label><input type="text" id="uUn" placeholder="username" autocomplete="off"></div><div class="f"><label>Password <span class="req">*</span></label><input type="password" id="uPw" placeholder="password"></div></div>
+  <div class="fr2">
+    <div class="f"><label>Department</label><input type="text" id="uDep" placeholder="Marketing, Operations..."></div>
+    <div class="f"><label>Role <span class="req">*</span></label>
+      <select id="uRole">
+        <option value="entrier">Entrier (input data saja)</option>
+        <option value="specialist">KOL Specialist</option>
+        <option value="superadmin">Super Admin</option>
+      </select>
+    </div>
+  </div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeOv('addUserOv')">Cancel</button><button class="btn btn-pri" onclick="saveUser()">Create User</button></div>
+</div></div>
+
+<!-- MODAL: EDIT USER -->
+<div class="ov" id="editUserOv"><div class="modal wide">
+  <button class="mc-close" onclick="closeOv('editUserOv')">✕</button>
+  <div class="mc-title">Edit User ✏️</div>
+  <input type="hidden" id="euId">
+  <div class="ph-up">
+    <div class="ph-prev" id="euPrev" onclick="document.getElementById('euPhF').click()">👤</div>
+    <div class="ph-info"><strong>Profile Photo</strong><br><span>Click to change (leave blank = keep current)</span></div>
+    <input type="file" id="euPhF" accept="image/*" onchange="prevPh(event,'euPrev','euPhD')">
+    <input type="hidden" id="euPhD">
+  </div>
+  <div class="fr2"><div class="f"><label>First Name</label><input type="text" id="euFn"></div><div class="f"><label>Last Name</label><input type="text" id="euLn"></div></div>
+  <div class="fr2"><div class="f"><label>Username</label><input type="text" id="euUn"></div><div class="f"><label>New Password</label><input type="password" id="euPw" placeholder="Leave blank = no change"></div></div>
+  <div class="fr2">
+    <div class="f"><label>Department</label><input type="text" id="euDep"></div>
+    <div class="f"><label>Role</label>
+      <select id="euRole"><option value="entrier">Entrier</option><option value="specialist">KOL Specialist</option><option value="superadmin">Super Admin</option></select>
+    </div>
+  </div>
+  <div class="mfoot"><button class="btn btn-ghost" onclick="closeOv('editUserOv')">Cancel</button><button class="btn btn-pri" onclick="updateUser()">Update</button></div>
+</div></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let CU = null;
+let rapidKey = localStorage.getItem('kol_k') || '';
+
+// Roles: superadmin > specialist > entrier
+let users = [
+  { id:'u1', fn:'Super', ln:'Admin', un:'admin', pw:'admin', dep:'Management', role:'superadmin', photo:'' },
+  { id:'u2', fn:'Budi',  ln:'S',    un:'specialist1', pw:'pass123', dep:'Marketing', role:'specialist', photo:'' },
+];
+
+let kolData  = [];
+let itemData = [];
+let ttCache  = {};
+
+// temp KOL being built (saved step by step)
+let draftKOL  = {};
+let curStep   = 0;
+
+const STATUS_FLOW = ['To Be Shipped','Shipped','Received','Waiting for Upload','Uploaded'];
+const MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+let charts = {};
+
+// ═══════════════════════════════════════════════
+// HELPERS — declared first so applyTheme can use G()
+// ═══════════════════════════════════════════════
+const G = id => document.getElementById(id);
+const V = id => G(id)?.value?.trim()||'';
+const S = (id,v) => { if(G(id)) G(id).value=v; };
+const show = id => { if(G(id)) G(id).style.display=''; };
+const hide = id => { if(G(id)) G(id).style.display='none'; };
+
+// ═══════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════
+let dark = localStorage.getItem('kol_theme') !== 'light';
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+  const ico = dark?'☀️':'🌙', lbl = dark?'Light':'Dark';
+  ['thIco','thNavIc','thTopIc'].forEach(i=>{ const e=G(i); if(e) e.textContent=ico; });
+  ['thLbl','thNavLb','thNavTip','thTopLb'].forEach(i=>{ const e=G(i); if(e) e.textContent=lbl+(i.includes('Nav')?'':''); });
+  Object.values(charts).forEach(c=>{ if(c){ c.options.plugins.legend.labels.color=dark?'#aeaeb2':'#48484a'; c.update(); }});
+}
+function toggleTheme(){ dark=!dark; localStorage.setItem('kol_theme',dark?'dark':'light'); applyTheme(); }
+applyTheme();
+
+
+function genId()  { return 'KOL-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase(); }
+function genIId() { return 'ITM-'+Date.now().toString(36).toUpperCase(); }
+function today()  { return new Date().toISOString().split('T')[0]; }
+
+function tsNow() {
+  const n = new Date();
+  return n.toISOString();
+}
+
+function fmtDT(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) +
+           ' ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) { return iso; }
+}
+
+function fmtN(n) {
+  if (n===null||n===undefined||n==='') return '—';
+  n=parseInt(n)||0;
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString('id-ID');
+}
+
+function statusBadge(s) {
+  const m={'Shipped':'b-ship','To Be Shipped':'b-tbs','Received':'b-rec','Waiting for Upload':'b-wait','Uploaded':'b-up'};
+  return `<span class="bdg ${m[s]||''}"><span class="bdg-dot"></span>${s}</span>`;
+}
+
+function userPhH(u, sz=32) {
+  const ini = (u.fn||u.un)[0].toUpperCase();
+  if (u.photo) return `<img src="${u.photo}" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover">`;
+  return `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:var(--accs);color:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${sz*.4}px;flex-shrink:0">${ini}</div>`;
+}
+
+function roleChip(role) {
+  const map = { superadmin:'rc-sa', specialist:'rc-sp', entrier:'rc-en' };
+  const lbl = { superadmin:'Super Admin', specialist:'KOL Specialist', entrier:'Entrier' };
+  return `<span class="role-chip ${map[role]||'rc-en'}">${lbl[role]||role}</span>`;
+}
+
+function isSuperAdmin() { return CU?.role === 'superadmin'; }
+function canManage()    { return CU?.role === 'superadmin' || CU?.role === 'specialist'; }
+
+function prevPh(e, pId, dId) {
+  const f=e.target.files[0]; if(!f) return;
+  if(f.size>2*1024*1024){toast('Photo max 2MB','err');return;}
+  const r=new FileReader();
+  r.onload=ev=>{ S(dId,ev.target.result); G(pId).innerHTML=`<img src="${ev.target.result}">`; };
+  r.readAsDataURL(f);
+}
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+function doLogin() {
+  const u=V('loginUser'), p=V('loginPass');
+  const f=users.find(x=>x.un===u&&x.pw===p);
+  if(!f){ G('loginErr').style.display='block'; return; }
+  G('loginErr').style.display='none';
+  CU=f;
+  hide('loginPage'); G('appPage').style.display='block';
+  setSBUser();
+
+  const isAdm = isSuperAdmin();
+  document.querySelectorAll('.adm-ni').forEach(el=>el.style.display=isAdm?'':'none');
+  if(isAdm) { show('rfAllWrap'); }
+
+  G('apiK').value = rapidKey;
+  // Load WA template into settings textarea
+  const savedTpl = localStorage.getItem('kol_watpl');
+  if (G('waTplInput')) G('waTplInput').value = savedTpl || WA_DEFAULT;
+  updateGreet();
+  populateDDs();
+  renderKOL(); renderItems(); renderUsers();
+  if(salesOrders.length) renderSalesAnalytics();
+  setTimeout(()=>initCharts(),100);
+  updateDash();
+}
+
+function doLogout() {
+  CU=null;
+  G('loginPage').style.display='flex';
+  G('appPage').style.display='none';
+  S('loginUser',''); S('loginPass','');
+}
+
+G('loginPass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+
+function setSBUser() {
+  const name=[CU.fn,CU.ln].filter(Boolean).join(' ')||CU.un;
+  G('sbName').textContent=name; G('sbRole').textContent=CU.role;
+  const ph=G('sbPhoto');
+  if(CU.photo){ph.innerHTML=`<img src="${CU.photo}">`;}
+  else{ph.innerHTML='';ph.textContent=(CU.fn||CU.un)[0].toUpperCase();}
+}
+
+// ═══════════════════════════════════════════════
+// SIDEBAR / PAGES
+// ═══════════════════════════════════════════════
+let sbMini=false;
+function toggleSB(){ sbMini=!sbMini; G('sb').classList.toggle('mini',sbMini); G('mw').classList.toggle('mini',sbMini); }
+
+const ptitles={dashboard:'Dashboard',kol:'KOL Specialist',items:'Item List',users:'Users',settings:'Settings',sales:'Sales & Analytics'};
+function gotoPage(pg,ni){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(ni) ni.classList.add('active');
+  G('p-'+pg).classList.add('active');
+  G('tbarT').textContent=ptitles[pg]||pg;
+  if(pg==='dashboard') updateDash();
+  if(pg==='sales') {
+    renderSalesAnalytics();
+  }
+  if(pg==='settings') {
+    // Re-sync settings fields
+    if(G('apiK')) G('apiK').value = rapidKey;
+    const tpl = localStorage.getItem('kol_watpl') || WA_DEFAULT;
+    if(G('waTplInput')) G('waTplInput').value = tpl;
+    if(G('waTplPreview')) G('waTplPreview').style.display='none';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// OVERLAYS
+// ═══════════════════════════════════════════════
+function openOv(id){ G(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeOv(id){ G(id).classList.remove('open'); document.body.style.overflow=''; }
+document.querySelectorAll('.ov').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) closeOv(m.id); }));
+
+// Close SKU dropdown when modal scrolls, and reposition on window resize
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('scroll', () => closeSku());
+});
+window.addEventListener('resize', () => closeSku());
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+function toast(msg,type='ok'){
+  const w=G('toastWrap'),t=document.createElement('div');
+  const ic={ok:'✅',err:'❌',info:'💡'};
+  t.className='toast '+type;
+  t.innerHTML=`<span>${ic[type]||'ℹ️'}</span><span>${msg}</span>`;
+  w.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{ t.classList.replace('show','hide'); setTimeout(()=>t.remove(),350); },3200);
+}
+
+// ═══════════════════════════════════════════════
+// GREETING
+// ═══════════════════════════════════════════════
+function updateGreet(){
+  const h=new Date().getHours();
+  const em=h<12?'🌅':h<17?'☀️':'🌙';
+  G('grName').textContent=CU.fn||CU.un; G('grEm').textContent=em;
+  G('grDate').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+// ═══════════════════════════════════════════════
+// POPULATE DROPDOWNS
+// ═══════════════════════════════════════════════
+function populateDDs(){
+  const opts=users.map(u=>{
+    const name=[u.fn,u.ln].filter(Boolean).join(' ')||u.un;
+    return `<option value="${u.un}">${name} (@${u.un})</option>`;
+  }).join('');
+  G('s1Spec').innerHTML=opts;
+  G('eSpec').innerHTML=opts;
+}
+
+// ═══════════════════════════════════════════════
+// SKU SEARCH DROPDOWN
+// ═══════════════════════════════════════════════
+function skuSearch(q) {
+  const inp  = G('s1SkuInput');
+  const drop = G('skuDrop');
+
+  // Position as fixed so modal overflow can't clip it
+  const rect = inp.getBoundingClientRect();
+  drop.style.top   = (rect.bottom + 4) + 'px';
+  drop.style.left  = rect.left + 'px';
+  drop.style.width = rect.width + 'px';
+
+  const matches = itemData.filter(it =>
+    !q || it.name.toLowerCase().includes(q.toLowerCase()) || it.sku.toLowerCase().includes(q.toLowerCase())
+  );
+
+  if (!itemData.length) {
+    drop.innerHTML = `<div class="sku-none">No items yet — add items in Item List first</div>`;
+  } else if (!matches.length) {
+    drop.innerHTML = `<div class="sku-none">No match found</div>`;
+  } else {
+    drop.innerHTML = matches.map(it => `
+      <div class="sku-opt" onmousedown="selectSku('${it.id}')">
+        <div class="sku-name">${it.name}</div>
+        <div class="sku-sub">${it.sku}${it.color ? ' · ' + it.color : ''}</div>
+      </div>`).join('');
+  }
+  drop.classList.add('open');
+}
+
+function selectSku(id) {
+  const it = itemData.find(x => x.id === id); if (!it) return;
+  G('s1SkuInput').value = `${it.name} — ${it.sku}`;
+  S('s1Product', it.sku);
+  G('skuDrop').classList.remove('open');
+  if (G('ppProd')) G('ppProd').textContent = it.name + ' (' + it.sku + ')';
+}
+
+function closeSku() {
+  const drop = G('skuDrop');
+  if (drop) drop.classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════
+// MULTI-STEP FORM
+// ═══════════════════════════════════════════════
+function openAddKOL(){
+  curStep=0; draftKOL={};
+  S('s1Date',today()); S('s1Tiktok',''); S('s1Phone',''); S('s1SkuInput',''); S('s1Product','');
+  S('s2Name',''); S('s2Phone',''); S('s2Addr','');
+  S('s3Exp',''); S('s3Resi',''); S('s3ShipDate',today());
+  S('s4RecDate',today()); S('s4Note','');
+  S('s5ContentId',''); S('s5Link',''); S('s5UpDate',today());
+  populateDDs();
+  G('s1Spec').value = CU.un;
+  // Non-superadmin: lock to their own account
+  G('s1Spec').disabled = !isSuperAdmin();
+  renderStepBar();
+  openOv('addKOLOv');
+}
+
+function renderStepBar(){
+  for(let i=0;i<5;i++){
+    const sc=G('sc'+i), sp=G('sp'+i);
+    sp.classList.toggle('active',i===curStep);
+    if(i<curStep){sc.className='step-circle done';sc.textContent='✓';}
+    else if(i===curStep){sc.className='step-circle cur';sc.textContent=i+1;}
+    else{sc.className='step-circle pending';sc.textContent=i+1;}
+  }
+  for(let i=0;i<4;i++) G('sl'+i).classList.toggle('done',i<curStep);
+}
+
+function stepGo(n){ curStep=n; renderStepBar(); }
+
+function stepSave(step){
+  // Validate current step
+  if(step===0){
+    if(!V('s1Tiktok')){toast('TikTok username is required','err');return;}
+    if(!V('s1Phone')){toast('Phone number is required','err');return;}
+    if(!V('s1Product')){toast('Please select a product/SKU','err');return;}
+    draftKOL.specialist = G('s1Spec').value;
+    draftKOL.tiktok     = V('s1Tiktok');
+    draftKOL.phone      = V('s1Phone');
+    draftKOL.product    = V('s1Product');
+    draftKOL.productLabel = G('s1SkuInput').value;
+    draftKOL.entryDate  = V('s1Date') || today();
+    draftKOL.createdBy  = CU.un;
+    draftKOL.status     = 'To Be Shipped';
+    draftKOL.log        = draftKOL.log || [];
+    if(!draftKOL.id) draftKOL.id = genId();
+    draftKOL.log = draftKOL.log.filter(l=>l.status!=='Entry'&&l.status!=='To Be Shipped');
+    draftKOL.log.unshift({ status:'To Be Shipped', ts:tsNow(), by:CU.un, note:`Product: ${draftKOL.productLabel||draftKOL.product}` });
+    draftKOL.log.unshift({ status:'Entry', ts:tsNow(), by:CU.un, note:`@${draftKOL.tiktok} · ${draftKOL.phone}` });
+    saveDraftToKol();
+  }
+  if(step===1){
+    if(!V('s2Name')){toast('Recipient name is required','err');return;}
+    if(!V('s2Phone')){toast('Recipient phone is required','err');return;}
+    if(!V('s2Addr')){toast('Address wajib diisi','err');return;}
+    draftKOL.recvName  = V('s2Name');
+    draftKOL.recvPhone = V('s2Phone');
+    draftKOL.address   = V('s2Addr');
+    draftKOL.tbsDate   = tsNow();
+    draftKOL.status    = 'To Be Shipped';
+    draftKOL.log = draftKOL.log||[];
+    const hasIt = draftKOL.log.find(l=>l.status==='To Be Shipped');
+    if(!hasIt) draftKOL.log.push({ status:'To Be Shipped', ts:tsNow(), by:CU.un, note:`Ke: ${draftKOL.recvName}` });
+    saveDraftToKol();
+  }
+  if(step===2){
+    if(!V('s3Exp')){toast('Courier wajib dipilih','err');return;}
+    if(!V('s3Resi')){toast('Tracking number is required','err');return;}
+    draftKOL.courier     = V('s3Exp');
+    draftKOL.resi        = V('s3Resi');
+    draftKOL.shippedDate = V('s3ShipDate') || today();
+    draftKOL.status      = 'Shipped';
+    draftKOL.log = draftKOL.log||[];
+    draftKOL.log = draftKOL.log.filter(l=>l.status!=='Shipped');
+    draftKOL.log.push({ status:'Shipped', ts:new Date(draftKOL.shippedDate+'T12:00:00').toISOString(), by:CU.un, note:`${draftKOL.courier} — Resi: ${draftKOL.resi}` });
+    saveDraftToKol();
+  }
+  if(step===3){
+    if(!V('s4RecDate')){toast('Received date is required','err');return;}
+    draftKOL.receivedDate = V('s4RecDate');
+    draftKOL.waitingDate  = tsNow();
+    draftKOL.status       = 'Waiting for Upload';
+    draftKOL.log = draftKOL.log||[];
+    draftKOL.log = draftKOL.log.filter(l=>l.status!=='Received'&&l.status!=='Waiting for Upload');
+    draftKOL.log.push({ status:'Received', ts:new Date(draftKOL.receivedDate+'T12:00:00').toISOString(), by:CU.un, note:V('s4Note') });
+    draftKOL.log.push({ status:'Waiting for Upload', ts:tsNow(), by:CU.un, note:'' });
+    saveDraftToKol();
+  }
+  curStep = step+1; renderStepBar();
+  toast(`Step ${step+1} tersimpan ✓`, 'ok');
+}
+
+function finalSave(){
+  // Step 5 validation — all required
+  if(!V('s5ContentId')){toast('Content ID is required for Uploaded status','err');return;}
+  // Content ID uniqueness check
+  const cid = V('s5ContentId');
+  if(!checkContentIdUnique(cid, draftKOL.id)){toast('⚠ Content ID already used by another KOL entry!','err');return;}
+  draftKOL.contentId   = V('s5ContentId');
+  draftKOL.link        = V('s5Link');
+  draftKOL.uploadedDate= V('s5UpDate')||today();
+  draftKOL.status      = 'Uploaded';
+  draftKOL.log = draftKOL.log||[];
+  draftKOL.log = draftKOL.log.filter(l=>l.status!=='Uploaded');
+  draftKOL.log.push({ status:'Uploaded', ts:new Date(draftKOL.uploadedDate+'T12:00:00').toISOString(), by:CU.un, note:draftKOL.link });
+  saveDraftToKol();
+  renderKOL(); updateDash();
+  closeOv('addKOLOv');
+  toast('Entry complete & saved ✨', 'ok');
+}
+
+function saveDraftToKol(){
+  const idx = kolData.findIndex(x=>x.id===draftKOL.id);
+  if(idx>=0) kolData[idx]={...kolData[idx],...draftKOL};
+  else       kolData.unshift({...draftKOL});
+  renderKOL(); updateDash();
+}
+
+// ═══════════════════════════════════════════════
+// WA SHIPPING
+// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// WA TEMPLATE
+// ═══════════════════════════════════════════════
+const WA_DEFAULT = [
+  "Hi kak {{nama}} 👋",
+  "",
+  "I am {{pengirim}} (@{{username}}), with TikTok username *@{{tiktok}}*.",
+  "",
+  "We have sent you a FREE sample of *{{produk}}* to your address:",
+  "📍 {{alamat}}",
+  "",
+  "Shipping details:",
+  "📦 Courier: *{{ekspedisi}}*",
+  "🔖 Nomor Resi: *{{resi}}*",
+  "",
+  "Once received, please reply to this message! 🙏",
+  "",
+  "Thank you, warm regards 🧡",
+  "*goojodoq* <3"
+].join("\n");
+
+function getWATpl() {
+  return localStorage.getItem('kol_watpl') || WA_DEFAULT;
+}
+
+function saveWATemplate() {
+  const tpl = V('waTplInput');
+  if (!tpl) { toast('Template cannot be empty', 'err'); return; }
+  localStorage.setItem('kol_watpl', tpl);
+  toast('WA Template saved 💾', 'ok');
+}
+
+function resetWATemplate() {
+  if (!confirm('Reset to default template?')) return;
+  localStorage.removeItem('kol_watpl');
+  if (G('waTplInput')) G('waTplInput').value = WA_DEFAULT;
+  toast('Template reset to default', 'info');
+}
+
+function previewWA() {
+  const tpl = V('waTplInput') || getWATpl();
+  const preview = applyWATpl(tpl, {
+    nama: 'Siti Rahayu',
+    tiktok: '@siticontoh',
+    produk: 'Serum Wajah Premium',
+    alamat: 'Jl. Melati No. 12, Jakarta Selatan, 12345',
+    ekspedisi: 'JNE',
+    resi: 'JNE1234567890',
+    pengirim: [CU?.fn, CU?.ln].filter(Boolean).join(' ') || CU?.un || 'Admin',
+    username: CU?.un || 'admin',
+  });
+  G('waTplPreviewText').textContent = preview;
+  G('waTplPreview').style.display = '';
+}
+
+function applyWATpl(tpl, vars) {
+  return tpl
+    .replace(/{{nama}}/g, vars.nama || '—')
+    .replace(/{{tiktok}}/g, vars.tiktok || '—')
+    .replace(/{{produk}}/g, vars.produk || '—')
+    .replace(/{{alamat}}/g, vars.alamat || '—')
+    .replace(/{{ekspedisi}}/g, vars.ekspedisi || '—')
+    .replace(/{{resi}}/g, vars.resi || '—')
+    .replace(/{{pengirim}}/g, vars.pengirim || '—')
+    .replace(/{{username}}/g, vars.username || '—');
+}
+
+function buildWAMsg(name, tiktok, prodLabel, addr, courier, resi) {
+  const senderName = [CU?.fn, CU?.ln].filter(Boolean).join(' ') || CU?.un || 'Tim kami';
+  const senderUN   = CU?.un || '';
+  return applyWATpl(getWATpl(), {
+    nama: name,
+    tiktok: tiktok,
+    produk: prodLabel,
+    alamat: addr,
+    ekspedisi: courier,
+    resi: resi,
+    pengirim: senderName,
+    username: senderUN,
+  });
+}
+
+function waShipping(){
+  const tiktok   = V('s1Tiktok') || draftKOL.tiktok || '—';
+  const phone    = V('s2Phone')  || draftKOL.recvPhone || '';
+  const prodLabel= G('s1SkuInput')?.value || draftKOL.productLabel || draftKOL.product || '—';
+  const addr     = V('s2Addr')   || draftKOL.address || '—';
+  const courier  = V('s3Exp')    || draftKOL.courier || '—';
+  const resi     = V('s3Resi')   || draftKOL.resi    || '—';
+  const name     = V('s2Name')   || draftKOL.recvName || '—';
+
+  const cleanPhone = phone.replace(/\D/g,'').replace(/^0/,'62');
+  if(!cleanPhone){toast('Recipient phone number not filled','err');return;}
+  const msg = encodeURIComponent(buildWAMsg(name, tiktok, prodLabel, addr, courier, resi));
+  window.open(`https://wa.me/${cleanPhone}?text=${msg}`,'_blank');
+}
+
+// ═══════════════════════════════════════════════
+// PRINT LABEL
+// ═══════════════════════════════════════════════
+function updatePrintPrev(){
+  G('ppName').textContent  = V('s2Name')  || '—';
+  G('ppPhone').textContent = V('s2Phone') || '—';
+  G('ppAddr').textContent  = V('s2Addr')  || '—';
+  G('ppProd').textContent  = G('s1SkuInput')?.value || draftKOL.productLabel || '—';
+}
+
+['s2Name','s2Phone','s2Addr'].forEach(id=>{
+  const el=G(id); if(el) el.addEventListener('input',updatePrintPrev);
+});
+
+function printLabel(){
+  updatePrintPrev();
+  const w=window.open('','_blank','width=420,height=380');
+  w.document.write(`<html><head><title>Label Pengiriman</title>
+  <style>body{font-family:Arial,sans-serif;padding:28px;max-width:400px}h3{margin-bottom:14px;font-size:16px;border-bottom:2px solid #000;padding-bottom:8px}.row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}.row span:first-child{color:#666;min-width:90px}</style>
+  </head><body>
+  <h3>📦 Label Pengiriman</h3>
+  <div class="row"><span>To</span><span>${G('ppName').textContent}</span></div>
+  <div class="row"><span>Phone</span><span>${G('ppPhone').textContent}</span></div>
+  <div class="row"><span>Product</span><span>${G('ppProd').textContent}</span></div>
+  <div class="row"><span>Address</span><span style="text-align:right">${G('ppAddr').textContent.replace(/\n/g,'<br>')}</span></div>
+  <script>window.print();window.close();<\/script></body></html>`);
+  w.document.close();
+}
+
+// ═══════════════════════════════════════════════
+// VIEW TIMELINE
+// ═══════════════════════════════════════════════
+function viewKOL(id){
+  const r=kolData.find(x=>x.id===id); if(!r) return;
+  G('viewTitle').textContent=`@${r.tiktok} — ${r.product||r.productLabel}`;
+
+  const steps = [
+    { s:'Entry',            done:true,                                    em:'📋' },
+    { s:'To Be Shipped',    done:STATUS_FLOW.indexOf(r.status)>=0,       em:'📦' },
+    { s:'Shipped',          done:['Shipped','Received','Waiting for Upload','Uploaded'].includes(r.status), em:'🚚' },
+    { s:'Received',         done:['Received','Waiting for Upload','Uploaded'].includes(r.status), em:'📬' },
+    { s:'Waiting for Upload',done:['Waiting for Upload','Uploaded'].includes(r.status), em:'⏳' },
+    { s:'Uploaded',         done:r.status==='Uploaded',                  em:'🎬' },
+  ];
+
+  G('viewBody').innerHTML = `
+    <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap">
+      ${statusBadge(r.status)}
+      <span class="tag">${r.id}</span>
+      ${r.contentId?`<span class="tag">${r.contentId}</span>`:''}
+    </div>
+    <div class="tl">
+      ${steps.map((s,i)=>{
+        const logEntry = (r.log||[]).find(l=>l.status===s.s);
+        const dotC = s.done ? 'done' : (s.s===r.status?'active':'pending');
+        return `<div class="tl-item">
+          <div class="tl-dot ${dotC}">${s.done?'✓':s.em}</div>
+          <div class="tl-body">
+            <div class="tl-head">
+              <span class="tl-step">STEP ${i+1}</span>
+              <span class="tl-name">${s.s}</span>
+            </div>
+            ${logEntry
+              ? `<div class="tl-ts">📅 ${fmtDT(logEntry.ts)}${logEntry.by?` · @${logEntry.by}`:''}</div>
+                 ${logEntry.note?`<div class="tl-note">${logEntry.note.startsWith('http')?`<a href="${logEntry.note}" target="_blank" style="color:var(--acc)">↗ ${logEntry.note}</a>`:logEntry.note}</div>`:''}`
+              : `<div class="tl-ts" style="color:var(--t3)">Belum selesai</div>`
+            }
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  // Footer buttons
+  const sidx = STATUS_FLOW.indexOf(r.status);
+  const canAdv = sidx < STATUS_FLOW.length-1;
+  const canEdit = isSuperAdmin() || r.createdBy===CU.un;
+  let btns = `<button class="btn btn-ghost" onclick="closeOv('viewKOLOv')">Close</button>`;
+  if(canEdit) btns += `<button class="btn btn-sec" onclick="closeOv('viewKOLOv');editKOL('${r.id}')">✏️ Edit</button>`;
+  if(canAdv)  btns += `<button class="btn btn-pri" onclick="advanceStatus('${r.id}')">→ Lanjut ke: ${STATUS_FLOW[sidx+1]}</button>`;
+  G('viewFoot').innerHTML = btns;
+
+  openOv('viewKOLOv');
+}
+
+// ═══════════════════════════════════════════════
+// ADVANCE STATUS
+// ═══════════════════════════════════════════════
+function advanceStatus(id){
+  const r=kolData.find(x=>x.id===id); if(!r) return;
+  const sidx=STATUS_FLOW.indexOf(r.status);
+  if(sidx>=STATUS_FLOW.length-1){toast('Already at final status','info');return;}
+  const next=STATUS_FLOW[sidx+1];
+  closeOv('viewKOLOv');
+  G('advTitle').textContent=`Status → ${next}`;
+
+  let body=`<div style="font-size:13px;color:var(--t2);margin-bottom:16px">
+    Entry: <strong>@${r.tiktok} — ${r.product||r.productLabel}</strong><br>
+    Status baru: <strong style="color:var(--acc)">${next}</strong>
+  </div>`;
+
+  const inp=(id,lbl,req,val,type='text')=>`<div class="f fmb"><label>${lbl}${req?` <span class="req">*</span>`:''}</label><input id="${id}" type="${type}" value="${val||''}" style="width:100%;background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;color:var(--t);font-size:13px;outline:none"></div>`;
+  const ta=(id,lbl,val)=>`<div class="f fmb"><label>${lbl}</label><textarea id="${id}" style="width:100%;background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;color:var(--t);font-size:13px;outline:none;resize:vertical;min-height:60px">${val||''}</textarea></div>`;
+
+  if(next==='Shipped'){
+    body+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="f fmb"><label>Courier <span class="req">*</span></label><select id="advExp" style="width:100%;background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;color:var(--t);font-size:13px;outline:none"><option value="">Pilih</option><option>JNE</option><option>JNT</option><option>SiCepat</option><option>AnterAja</option><option>Ninja Express</option><option>TIKI</option><option>Pos Indonesia</option><option>Lainnya</option></select></div>
+      ${inp('advResi','Tracking No.',true,r.resi)}
+    </div>`;
+    body+=inp('advDt','Ship Date',true,today(),'date');
+    body+=`<div class="info-box warn">📱 Setelah konfirmasi, kamu bisa kirim WA otomatis</div>`;
+  } else if(next==='Received'){
+    body+=inp('advDt','Date Received',true,today(),'date');
+  } else if(next==='Waiting for Upload'){
+    body+=inp('advDt','Tanggal',true,today(),'date');
+    body+=ta('advNote','Catatan',r.waitingNote||'');
+  } else if(next==='Uploaded'){
+    body+=inp('advCid','Content ID',true,r.contentId);
+    body+=inp('advLink','TikTok Video Link (optional)',false,r.link,'url');
+    body+=inp('advDt','Upload Date',true,today(),'date');
+    body+=`<div class="info-box err">⚠️ Content ID & Link video wajib diisi! Tanpa keduanya status tidak bisa Uploaded.</div>`;
+  } else {
+    body+=inp('advDt','Tanggal',true,today(),'date');
+  }
+
+  G('advBody').innerHTML=body;
+  G('advBtn').onclick=()=>confirmAdv(id,next);
+  openOv('advOv');
+}
+
+function confirmAdv(id,next){
+  const idx=kolData.findIndex(x=>x.id===id); if(idx===-1) return;
+  const r=kolData[idx];
+  const updates={status:next};
+  const now=tsNow();
+  let logNote='';
+
+  if(next==='Shipped'){
+    const exp=G('advExp')?.value; const resi=G('advResi')?.value; const dt=G('advDt')?.value;
+    if(!exp||!resi){toast('Courier & resi wajib','err');return;}
+    updates.courier=exp; updates.resi=resi; updates.shippedDate=dt||today();
+    logNote=`${exp} — Resi: ${resi}`;
+    // WA option
+    const phone=(r.recvPhone||'').replace(/\D/g,'').replace(/^0/,'62');
+    if(phone){
+      const msg=encodeURIComponent(buildWAMsg(r.recvName||'', r.tiktok||'', r.productLabel||r.product||'', r.address||'', exp, resi));
+      setTimeout(()=>{
+        if(confirm('Send WhatsApp notification to recipient?')) window.open(`https://wa.me/${phone}?text=${msg}`,'_blank');
+      },400);
+    }
+  } else if(next==='Received'){
+    updates.receivedDate=G('advDt')?.value||today();
+    logNote='';
+  } else if(next==='Waiting for Upload'){
+    updates.waitingDate=G('advDt')?.value||today();
+    logNote=G('advNote')?.value||'';
+  } else if(next==='Uploaded'){
+    const cid=G('advCid')?.value; const lk=G('advLink')?.value;
+    if(!cid){toast('Content ID is required for Uploaded status','err');return;}
+    if(!checkContentIdUnique(cid, id)){toast('⚠ Content ID already used by another KOL entry!','err');return;}
+    updates.contentId=cid; updates.link=lk; updates.uploadedDate=G('advDt')?.value||today();
+    logNote=lk;
+  } else {
+    updates.tbsDate=G('advDt')?.value||today();
+  }
+
+  const newLog=[...(r.log||[]),{status:next,ts:now,by:CU.un,note:logNote}];
+  kolData[idx]={...kolData[idx],...updates,log:newLog};
+  renderKOL(); updateDash();
+  closeOv('advOv');
+  toast(`Status diubah ke ${next} ✓`,'ok');
+  setTimeout(()=>viewKOL(id),250);
+}
+
+// ═══════════════════════════════════════════════
+// KOL CRUD
+// ═══════════════════════════════════════════════
+function editKOL(id){
+  const r=kolData.find(x=>x.id===id); if(!r) return;
+  if(!isSuperAdmin()&&r.createdBy!==CU.un){toast('You can only edit your own items','err');return;}
+  S('eKolId',r.id);
+  S('eDt',r.entryDate||today());
+  populateDDs(); G('eSpec').value=r.specialist;
+  S('eTt',r.tiktok||''); S('ePh',r.phone||''); S('eNm',r.recvName||'');
+  S('eAd',r.address||''); S('ePr',r.productLabel||r.product||'');
+  S('eEx',r.courier||''); S('eRe',r.resi||'');
+  S('eCi',r.contentId||''); S('eLk',r.link||'');
+
+  // Render mini timeline inside edit modal
+  G('editTLPreview').innerHTML = buildMiniTimeline(r);
+  openOv('editKOLOv');
+}
+
+function buildMiniTimeline(r){
+  const steps=[
+    {s:'Entry',done:true},
+    {s:'To Be Shipped',done:true},
+    {s:'Shipped',done:['Shipped','Received','Waiting for Upload','Uploaded'].includes(r.status)},
+    {s:'Received',done:['Received','Waiting for Upload','Uploaded'].includes(r.status)},
+    {s:'Waiting for Upload',done:['Waiting for Upload','Uploaded'].includes(r.status)},
+    {s:'Uploaded',done:r.status==='Uploaded'},
+  ];
+  return `<div style="font-size:12px;color:var(--t3);margin-bottom:8px;font-family:var(--fm)">STATUS HISTORY:</div>
+  <div style="display:flex;gap:0;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+    ${steps.map(s=>`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:var(--fm);padding:3px 8px;border-radius:99px;background:${s.done?'var(--grns)':'var(--bg2)'};color:${s.done?'var(--grn)':'var(--t3)'}">
+      ${s.done?'✓':'○'} ${s.s}
+    </span>`).join('<span style="color:var(--bd2);font-size:10px">›</span>')}
+  </div>`;
+}
+
+function updateKOL(){
+  const id=V('eKolId'), idx=kolData.findIndex(x=>x.id===id); if(idx===-1) return;
+  kolData[idx]={...kolData[idx],
+    entryDate:V('eDt'), specialist:G('eSpec').value,
+    tiktok:V('eTt'), phone:V('ePh'), recvName:V('eNm'),
+    address:V('eAd'), product:V('ePr'), productLabel:V('ePr'),
+    courier:V('eEx'), resi:V('eRe'), contentId:V('eCi'), link:V('eLk'),
+  };
+  renderKOL(); updateDash(); closeOv('editKOLOv'); toast('Entry updated ✨','ok');
+}
+
+function deleteKOL(id){
+  const r=kolData.find(x=>x.id===id); if(!r) return;
+  if(!isSuperAdmin()&&r.createdBy!==CU.un){toast('You can only delete your own items','err');return;}
+  if(!confirm('Delete this entry?')) return;
+  kolData=kolData.filter(x=>x.id!==id); delete ttCache[id];
+  renderKOL(); updateDash(); toast('Entry deleted','info');
+}
+
+function renderKOL(){
+  const srch=G('kolSrch').value.toLowerCase(), sf=G('kolSF').value;
+  const body=G('kolBody'), emp=G('kolEmp');
+  const isSA=isSuperAdmin();
+
+  let rows=kolData.filter(r=>{
+    const ms=!srch||[r.tiktok,r.product,r.id,r.specialist,r.contentId].some(x=>(x||'').toLowerCase().includes(srch));
+    return ms&&(!sf||r.status===sf);
+  });
+
+  if(!rows.length){body.innerHTML='';emp.style.display='';return;}
+  emp.style.display='none';
+
+  body.innerHTML=rows.map(r=>{
+    const c=ttCache[r.id]||(r.ttLikes!==undefined?{likes:r.ttLikes,views:r.ttViews,comments:r.ttComments}:null);
+    const su=users.find(u=>u.un===r.specialist);
+    const sname=su?[su.fn,su.ln].filter(Boolean).join(' ')||su.un:r.specialist;
+    const canEdit=isSA||r.createdBy===CU.un;
+    const isUploaded=r.status==='Uploaded';
+
+    // Video preview cell
+    const cached = ttCache[r.id] || {};
+    const videoLink = r.link || cached.shareUrl || (r.contentId ? buildTikTokUrl(r.contentId, cached.authorUN) : null);
+    const coverImg  = r.coverUrl || cached.coverUrl || null;
+
+    const videoCell = isUploaded
+      ? videoLink
+        ? `<a href="${videoLink}" target="_blank" rel="noopener" style="display:inline-block;position:relative;text-decoration:none" title="Open video">
+            ${coverImg
+              ? `<img src="${coverImg}" style="width:42px;height:56px;object-fit:cover;border-radius:6px;display:block;border:1px solid var(--bd2)"
+                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+              : ''}
+            <div style="${coverImg?'display:none;':'display:flex;'}width:42px;height:56px;background:var(--bg2);border-radius:6px;border:1px solid var(--bd2);align-items:center;justify-content:center;font-size:18px">▶️</div>
+            <div style="position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,.6);border-radius:3px;padding:1px 4px;font-size:9px;color:#fff;font-family:var(--fm)">TT</div>
+           </a>`
+        : `<span style="color:var(--t3);font-size:11px">—</span>`
+      : `<span style="color:var(--t3);font-size:11px">—</span>`;
+
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">${su?userPhH(su,28):''}
+        <div><div style="font-size:12px;font-weight:500">${sname}</div><div class="mono" style="color:var(--t3);font-size:10px">@${r.specialist}</div></div>
+      </div></td>
+      <td><div style="font-size:12px;font-weight:500">@${r.tiktok}</div><span class="tag">${r.product||r.productLabel||'—'}</span></td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="padding:8px 14px">${videoCell}</td>
+      <td>${isUploaded?`<span class="sp lk ${c?'':'loading'}" id="lk-${r.id}">❤️ ${c?fmtN(c.likes):'·'}</span>`:'<span style="color:var(--t3);font-size:11px">—</span>'}</td>
+      <td>${isUploaded?`<span class="sp cm ${c?'':'loading'}" id="cm-${r.id}">💬 ${c?fmtN(c.comments):'·'}</span>`:'<span style="color:var(--t3);font-size:11px">—</span>'}</td>
+      <td>${isUploaded?`<div style="display:flex;align-items:center;gap:6px">
+        <span class="sp vw ${c?'':'loading'}" id="vw-${r.id}">👁️ ${c?fmtN(c.views):'·'}</span>
+        ${isSA?`<button class="rf-btn-row" id="rfb-${r.id}" onclick="fetchStats('${r.id}')">↻</button>`:''}
+      </div>`:'<span style="color:var(--t3);font-size:11px">—</span>'}</td>
+      <td><div class="acts">
+        <button class="btn btn-sec btn-xs" onclick="viewKOL('${r.id}')">📋</button>
+        ${canEdit?`<button class="btn btn-ghost btn-xs" onclick="editKOL('${r.id}')">✏️</button>`:''}
+        ${canEdit?`<button class="btn btn-danger btn-xs" onclick="deleteKOL('${r.id}')">🗑</button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// TIKTOK API (superadmin only)
+// ═══════════════════════════════════════════════
+function saveKey(){
+  rapidKey=V('apiK'); localStorage.setItem('kol_k',rapidKey);
+  toast('API key saved 💾','ok');
+}
+
+// ─── TikTok API helpers ────────────────────────────────────────────
+// API: POST https://tiktok-video-no-watermark2.p.rapidapi.com/
+// Body: form-data { url: <contentId OR full URL>, hd: "1" }
+// Content ID is preferred over link URL because TikTok links change
+// when a creator changes their username.
+
+async function callTikTokAPI(contentId) {
+  const form = new FormData();
+  form.append('url', contentId);
+  form.append('hd', '1');
+
+  const res = await fetch('https://tiktok-video-no-watermark2.p.rapidapi.com/', {
+    method: 'POST',
+    headers: {
+      'X-RapidAPI-Key':  rapidKey,
+      'X-RapidAPI-Host': 'tiktok-video-no-watermark2.p.rapidapi.com',
+    },
+    body: form,
+  });
+
+  const raw = await res.text();
+  console.log('[TikTok API] status:', res.status, '| id:', contentId, '| body:', raw.slice(0, 400));
+  if (!res.ok) {
+    let msg = 'HTTP ' + res.status;
+    try { const j = JSON.parse(raw); msg = j.message || j.msg || j.error || msg; } catch(e) {}
+    throw new Error(msg);
+  }
+  return JSON.parse(raw);
+}
+
+function parseTikTokStats(j) {
+  let lk = null, vw = null, cm = null, shareUrl = null, coverUrl = null, authorUN = null;
+
+  if (j?.data?.digg_count !== undefined) {
+    lk = j.data.digg_count; vw = j.data.play_count; cm = j.data.comment_count;
+    // Try to get share URL from API response
+    shareUrl  = j.data.share_url || j.data.video_id
+      ? `https://www.tiktok.com/@${j.data.author?.unique_id||'video'}/video/${j.data.id||j.data.video_id}`
+      : null;
+    coverUrl  = j.data.cover || j.data.origin_cover || j.data.ai_dynamic_cover || null;
+    authorUN  = j.data.author?.unique_id || null;
+  } else if (j?.itemInfo?.itemStruct?.stats) {
+    const s = j.itemInfo.itemStruct.stats;
+    lk = s.diggCount; vw = s.playCount; cm = s.commentCount;
+    shareUrl  = j.itemInfo.itemStruct.video?.downloadAddr || null;
+    coverUrl  = j.itemInfo.itemStruct.video?.cover || null;
+    authorUN  = j.itemInfo.itemStruct.author?.uniqueId || null;
+  } else if (j?.diggCount !== undefined) {
+    lk = j.diggCount; vw = j.playCount; cm = j.commentCount;
+  } else if (j?.statistics) {
+    lk = j.statistics.diggCount||j.statistics.likes;
+    vw = j.statistics.playCount||j.statistics.views;
+    cm = j.statistics.commentCount||j.statistics.comments;
+  }
+  return { lk, vw, cm, shareUrl, coverUrl, authorUN };
+}
+
+// Build a TikTok video URL from content ID + username (fallback)
+function buildTikTokUrl(contentId, authorUN) {
+  if (!contentId) return null;
+  const un = authorUN || 'video';
+  return `https://www.tiktok.com/@${un}/video/${contentId}`;
+}
+
+async function fetchStats(rowId) {
+  if (!isSuperAdmin()) { toast('Only Super Admin can refresh stats', 'err'); return; }
+  const r = kolData.find(x => x.id === rowId); if (!r) return;
+  if (!rapidKey) { toast('Please set your API key in Settings first', 'err'); return; }
+
+  // Prefer Content ID (stable), fall back to link URL
+  const target = r.contentId || r.link;
+  if (!target) { toast('No Content ID or link found for this entry', 'err'); return; }
+  if (!r.contentId && r.link) {
+    toast('ℹ Using link URL (no Content ID) — consider adding Content ID for stability', 'info');
+  }
+
+  setLoad(rowId, true);
+  try {
+    const j = await callTikTokAPI(target);
+    const { lk, vw, cm, shareUrl, coverUrl, authorUN } = parseTikTokStats(j);
+    if (lk === null) throw new Error('Could not parse stats — check Console (F12) for full response');
+
+    // Save stats + cover + auto-fill link if missing
+    ttCache[rowId] = { likes: lk, views: vw, comments: cm, coverUrl, shareUrl, authorUN };
+    const ki = kolData.findIndex(x => x.id === rowId);
+    if (ki !== -1) {
+      kolData[ki].ttLikes    = lk;
+      kolData[ki].ttViews    = vw;
+      kolData[ki].ttComments = cm;
+      // Auto-save link if it wasn't filled in
+      if (!kolData[ki].link) {
+        const autoLink = shareUrl || buildTikTokUrl(kolData[ki].contentId, authorUN);
+        if (autoLink) {
+          kolData[ki].link = autoLink;
+          console.log('[TikTok] Auto-saved link:', autoLink);
+        }
+      }
+      if (coverUrl && !kolData[ki].coverUrl) kolData[ki].coverUrl = coverUrl;
+    }
+    updPills(rowId, lk, vw, cm);
+    updateDash();
+    if (salesOrders.length) renderSalesAnalytics();
+    toast(`❤️ ${fmtN(lk)} · 💬 ${fmtN(cm)} · 👁️ ${fmtN(vw)}`, 'ok');
+  } catch(err) {
+    console.error('[fetchStats]', err);
+    setLoadErr(rowId);
+    toast('Fetch failed: ' + err.message, 'err');
+  }
+}
+
+async function refreshAll() {
+  if (!isSuperAdmin()) { toast('Only Super Admin can do this', 'err'); return; }
+  const rows = kolData.filter(r => r.status === 'Uploaded' && (r.contentId || r.link));
+  if (!rows.length) { toast('No Uploaded entries with Content ID or link', 'info'); return; }
+  toast(`Refreshing ${rows.length} entries...`, 'info');
+  for (const r of rows) {
+    await fetchStats(r.id);
+    await new Promise(res => setTimeout(res, 700)); // rate-limit friendly
+  }
+  toast('All stats refreshed 🎉', 'ok');
+}
+
+function setLoad(id,on){
+  ['lk','vw','cm'].forEach(p=>{const e=G(p+'-'+id);if(e)e.classList.toggle('loading',on);});
+  const b=G('rfb-'+id);if(b)b.disabled=on;
+}
+function setLoadErr(id){
+  ['lk','vw','cm'].forEach(p=>{const e=G(p+'-'+id);if(e){e.classList.remove('loading');const t=e.textContent.split(' ');e.textContent=t[0]+' err';}});
+  const b=G('rfb-'+id);if(b)b.disabled=false;
+}
+function updPills(id,lk,vw,cm){
+  const le=G('lk-'+id),ve=G('vw-'+id),ce=G('cm-'+id);
+  if(le){le.classList.remove('loading');le.textContent='❤️ '+fmtN(lk);}
+  if(ve){ve.classList.remove('loading');ve.textContent='👁️ '+fmtN(vw);}
+  if(ce){ce.classList.remove('loading');ce.textContent='💬 '+fmtN(cm);}
+  const b=G('rfb-'+id);if(b)b.disabled=false;
+}
+
+// ═══════════════════════════════════════════════
+// ITEMS CRUD
+// ═══════════════════════════════════════════════
+function openAddItem(){ S('iNm','');S('iSk','');S('iCl','');openOv('addItemOv'); }
+function saveItem(){
+  const n=V('iNm'),s=V('iSk');
+  if(!n||!s){toast('Name & SKU are required','err');return;}
+  itemData.push({id:genIId(),name:n,sku:s,color:V('iCl'),createdBy:CU.un});
+  renderItems();closeOv('addItemOv');toast('Item added 📦','ok');
+}
+function editItem(id){
+  const r=itemData.find(x=>x.id===id);if(!r)return;
+  if(!isSuperAdmin()&&r.createdBy!==CU.un){toast('You can only edit your own items','err');return;}
+  S('eiId',r.id);S('eiNm',r.name);S('eiSk',r.sku);S('eiCl',r.color);openOv('editItemOv');
+}
+function updateItem(){
+  const id=V('eiId'),idx=itemData.findIndex(x=>x.id===id);if(idx===-1)return;
+  const n=V('eiNm'),s=V('eiSk');if(!n||!s){toast('Name & SKU are required','err');return;}
+  itemData[idx]={...itemData[idx],name:n,sku:s,color:V('eiCl')};
+  renderItems();closeOv('editItemOv');toast('Item updated','ok');
+}
+function deleteItem(id){
+  const r=itemData.find(x=>x.id===id);if(!r)return;
+  if(!isSuperAdmin()&&r.createdBy!==CU.un){toast('You can only delete your own items','err');return;}
+  if(!confirm('Delete this item?'))return;
+  itemData=itemData.filter(x=>x.id!==id);renderItems();toast('Deleted','info');
+}
+function renderItems(){
+  const srch=G('itemSrch').value.toLowerCase(),body=G('itemBody'),emp=G('itemEmp');
+  const isSA=isSuperAdmin();
+  let rows=itemData.filter(r=>!srch||[r.name,r.sku,r.color].some(v=>(v||'').toLowerCase().includes(srch)));
+  if(!rows.length){body.innerHTML='';emp.style.display='';return;}
+  emp.style.display='none';
+  body.innerHTML=rows.map((r,i)=>{
+    const can=isSA||r.createdBy===CU.un;
+    return `<tr><td class="mono" style="color:var(--t3)">${i+1}</td><td>${r.name}</td><td><span class="tag">${r.sku}</span></td><td>${r.color||'<span style="color:var(--t3)">—</span>'}</td>
+    <td><div class="acts">${can?`<button class="btn btn-ghost btn-xs" onclick="editItem('${r.id}')">✏️</button>`:''} ${can?`<button class="btn btn-danger btn-xs" onclick="deleteItem('${r.id}')">🗑</button>`:''}</div></td></tr>`;
+  }).join('');
+}
+
+function importCSV(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const lines=ev.target.result.split('\n').filter(l=>l.trim());
+    if(lines.length<2){toast('CSV is empty','err');return;}
+    const hdr=lines[0].toLowerCase().split(',').map(h=>h.trim().replace(/"/g,''));
+    const ni=hdr.findIndex(h=>h.includes('name')||h.includes('item'));
+    const si=hdr.findIndex(h=>h.includes('sku'));
+    const ci=hdr.findIndex(h=>h.includes('color')||h.includes('colour'));
+    let added=0;
+    for(let i=1;i<lines.length;i++){
+      const c=lines[i].split(',').map(x=>x.trim().replace(/^"|"$/g,''));
+      const name=ni>=0?c[ni]:c[0],sku=si>=0?c[si]:c[1],color=ci>=0?c[ci]:c[2];
+      if(name&&sku){itemData.push({id:genIId(),name,sku:sku||'',color:color||'',createdBy:CU.un});added++;}
+    }
+    renderItems();toast(`${added} item diimport 📦`,'ok');e.target.value='';
+  };
+  r.readAsText(file);
+}
+
+const dz=G('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dov')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dov'));
+dz.addEventListener('drop',e=>{
+  e.preventDefault();dz.classList.remove('dov');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.name.endsWith('.csv'))importCSV({target:{files:[f],value:''}});
+  else toast('Please drop a .csv file','err');
+});
+
+// ═══════════════════════════════════════════════
+// USERS CRUD (superadmin)
+// ═══════════════════════════════════════════════
+function openAddUser(){ ['uFn','uLn','uUn','uPw','uDep'].forEach(i=>S(i,'')); S('aPhD',''); G('aPrev').innerHTML='👤'; openOv('addUserOv'); }
+function saveUser(){
+  const un=V('uUn'),pw=V('uPw'),fn=V('uFn'),role=G('uRole').value;
+  if(!un||!pw||!fn){toast('Name, username & password are required','err');return;}
+  if(users.find(u=>u.un===un)){toast('Username already taken','err');return;}
+  users.push({id:'u'+Date.now(),fn,ln:V('uLn'),un,pw,dep:V('uDep'),role,photo:V('aPhD')});
+  renderUsers();populateDDs();closeOv('addUserOv');toast('User created 👤','ok');
+}
+function openEditUser(id){
+  const u=users.find(x=>x.id===id);if(!u)return;
+  S('euId',u.id);S('euFn',u.fn||'');S('euLn',u.ln||'');
+  S('euUn',u.un);S('euPw','');S('euDep',u.dep||'');
+  G('euRole').value=u.role||'entrier';
+  S('euPhD','');
+  const p=G('euPrev');
+  if(u.photo){p.innerHTML=`<img src="${u.photo}">`;}
+  else{p.innerHTML='';p.textContent=(u.fn||u.un)[0].toUpperCase();}
+  openOv('editUserOv');
+}
+function updateUser(){
+  const id=V('euId'),idx=users.findIndex(x=>x.id===id);if(idx===-1)return;
+  const un=V('euUn');if(!un){toast('Username is required','err');return;}
+  const pw=V('euPw'),nph=V('euPhD'),role=G('euRole').value;
+  users[idx]={...users[idx],fn:V('euFn'),ln:V('euLn'),un,dep:V('euDep'),role,...(pw?{pw}:{}), ...(nph?{photo:nph}:{})};
+  renderUsers();populateDDs();
+  if(CU.id===id){CU=users[idx];setSBUser();}
+  closeOv('editUserOv');toast('User updated','ok');
+}
+function deleteUser(id){
+  if(id==='u1'){toast('Admin account cannot be deleted','err');return;}
+  if(!confirm('Delete this user?'))return;
+  users=users.filter(u=>u.id!==id);renderUsers();populateDDs();toast('Deleted','info');
+}
+function renderUsers(){
+  G('usersBody').innerHTML=users.map(u=>{
+    const name=[u.fn,u.ln].filter(Boolean).join(' ')||'—';
+    return `<tr>
+      <td>${userPhH(u,32)}</td>
+      <td style="font-weight:500;font-size:13px">${name}</td>
+      <td><span class="tag">${u.un}</span></td>
+      <td style="font-size:12px;color:var(--t2)">${u.dep||'—'}</td>
+      <td>${roleChip(u.role||'entrier')}</td>
+      <td><div class="acts">
+        <button class="btn btn-ghost btn-xs" onclick="openEditUser('${u.id}')">✏️</button>
+        ${u.id!=='u1'?`<button class="btn btn-danger btn-xs" onclick="deleteUser('${u.id}')">🗑</button>`:'<span style="font-size:10px;color:var(--t3);font-family:var(--fm)">protected</span>'}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD + CHARTS
+// ═══════════════════════════════════════════════
+function getFiltered(){
+  const sf=G('dashSpec')?.value||'', st=G('dashStat')?.value||'';
+  return kolData.filter(r=>(!sf||r.specialist===sf)&&(!st||r.status===st));
+}
+
+function updateDash(){
+  const filtered=getFiltered();
+  const isSA=isSuperAdmin();
+
+  // Update specialist filter
+  const sf=G('dashSpec');
+  if(sf){const cur=sf.value;sf.innerHTML='<option value="">Semua Specialist</option>'+users.map(u=>`<option value="${u.un}">${u.fn||u.un} (@${u.un})</option>`).join('');sf.value=cur;}
+
+  const total=filtered.length, uploaded=filtered.filter(r=>r.status==='Uploaded').length;
+  let tv=0,tl=0,tc=0,hasS=false;
+  filtered.forEach(r=>{const c=ttCache[r.id];if(c){hasS=true;tv+=parseInt(c.views)||0;tl+=parseInt(c.likes)||0;tc+=parseInt(c.comments)||0;}});
+  G('d-total').textContent=total; G('d-up').textContent=uploaded;
+  G('d-views').textContent=hasS?fmtN(tv):'—'; G('d-likes').textContent=hasS?fmtN(tl):'—'; G('d-cmts').textContent=hasS?fmtN(tc):'—';
+
+  buildCharts(filtered);
+  buildLB(filtered);
+}
+
+function getCD(){
+  const gc=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  const tc=dark?'#636366':'#8e8e93';
+  const lc=dark?'#aeaeb2':'#48484a';
+  return{gc,tc,lc};
+}
+
+function initCharts(){
+  const{gc,tc,lc}=getCD();
+  const bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false,labels:{color:lc,font:{family:'Roboto',size:11}}},tooltip:{bodyFont:{family:'Roboto'},titleFont:{family:'Roboto'}}},scales:{x:{grid:{color:gc},ticks:{color:tc,font:{family:'Roboto Mono',size:10}}},y:{grid:{color:gc},ticks:{color:tc,font:{family:'Roboto Mono',size:10}},beginAtZero:true}}};
+  const dO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:lc,font:{family:'Roboto',size:11},boxWidth:12}},tooltip:{bodyFont:{family:'Roboto'}}}};
+  ['chE','chV','chL','chS'].forEach(id=>{if(charts[id]){charts[id].destroy();delete charts[id];}});
+  charts.chE=new Chart(G('chE'),{type:'bar',data:{labels:[],datasets:[{label:'Entry',data:[],backgroundColor:'rgba(255,159,10,.7)',borderRadius:5}]},options:bO});
+  charts.chV=new Chart(G('chV'),{type:'line',data:{labels:[],datasets:[{label:'Views',data:[],borderColor:'#0a84ff',backgroundColor:'rgba(10,132,255,.1)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#0a84ff'}]},options:bO});
+  charts.chL=new Chart(G('chL'),{type:'line',data:{labels:[],datasets:[{label:'Likes',data:[],borderColor:'#ff453a',backgroundColor:'rgba(255,69,58,.1)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#ff453a'}]},options:bO});
+  charts.chS=new Chart(G('chS'),{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:['#ff9f0a','#32d74b','#0a84ff','#bf5af2','#5ac8fa'],borderWidth:0}]},options:dO});
+  buildCharts(getFiltered());
+}
+
+function buildCharts(filtered){
+  if(!charts.chE) return;
+  const now=new Date();
+  const labels=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);labels.push(MONTHS[d.getMonth()]+' '+d.getFullYear().toString().substr(2));}
+  const ec=new Array(6).fill(0),vc=new Array(6).fill(0),lc2=new Array(6).fill(0);
+  filtered.forEach(r=>{
+    const date=new Date(r.entryDate||r.createdAt||Date.now());
+    const diffM=(now.getFullYear()-date.getFullYear())*12+(now.getMonth()-date.getMonth());
+    const idx=5-diffM;
+    if(idx>=0&&idx<6){ec[idx]++;const c=ttCache[r.id];if(c){vc[idx]+=parseInt(c.views)||0;lc2[idx]+=parseInt(c.likes)||0;}}
+  });
+  const{gc,tc}=getCD();
+  const updScale=ch=>{ch.options.scales.x.grid.color=gc;ch.options.scales.y.grid.color=gc;ch.options.scales.x.ticks.color=tc;ch.options.scales.y.ticks.color=tc;};
+  charts.chE.data.labels=labels;charts.chE.data.datasets[0].data=ec;updScale(charts.chE);charts.chE.update();
+  charts.chV.data.labels=labels;charts.chV.data.datasets[0].data=vc;updScale(charts.chV);charts.chV.update();
+  charts.chL.data.labels=labels;charts.chL.data.datasets[0].data=lc2;updScale(charts.chL);charts.chL.update();
+  const sc={};filtered.forEach(r=>{sc[r.status]=(sc[r.status]||0)+1;});
+  charts.chS.data.labels=Object.keys(sc);charts.chS.data.datasets[0].data=Object.values(sc);charts.chS.update();
+}
+
+function buildLB(filtered){
+  const by={};
+  filtered.forEach(r=>{if(!by[r.specialist])by[r.specialist]={entries:0,views:0,likes:0};by[r.specialist].entries++;const c=ttCache[r.id];if(c){by[r.specialist].views+=parseInt(c.views)||0;by[r.specialist].likes+=parseInt(c.likes)||0;}});
+  const ranked=Object.entries(by).map(([un,s])=>({un,user:users.find(u=>u.un===un)||{un,fn:un,ln:'',photo:''},...s})).sort((a,b)=>b.views-a.views).slice(0,6);
+  const medals=['🥇','🥈','🥉'];
+  G('lbGrid').innerHTML=ranked.length?ranked.map((r,i)=>{
+    const name=[r.user.fn,r.user.ln].filter(Boolean).join(' ')||r.un;
+    return `<div class="lbc"><div class="lbc-rank">${medals[i]||i+1}</div>${userPhH(r.user,38)}<div class="lbc-info"><div class="lbc-name">${name}</div><div class="lbc-dept">${r.user.dep||'—'} · ${r.entries} entry</div></div><div class="lbc-stat"><div class="lbc-num">${fmtN(r.views)}</div><div class="lbc-sub">views</div></div></div>`;
+  }).join(''):'<div style="color:var(--t3);font-size:13px;padding:14px 0">No data yet 😊</div>';
+}
+
+// ═══════════════════════════════════════════════
+// SALES DATA ENGINE
+// ═══════════════════════════════════════════════
+let salesOrders = []; // all unique orders (deduped by Order ID)
+let salesCharts = {};
+
+// Column mapping from TikTok export (Indonesian headers)
+const SCOL = {
+  orderId:        0,   // ID Pesanan
+  productId:      1,   // ID Produk
+  product:        2,   // Produk
+  sku:            3,   // SKU
+  skuId:          4,   // ID Sku
+  sellerSku:      5,   // Penjual Sku
+  price:          6,   // Harga
+  paymentAmount:  7,   // Payment Amount
+  currency:       8,   // Mata Uang
+  qty:            9,   // Kuantitas
+  payMethod:      10,  // Metode Pembayaran
+  orderStatus:    11,  // Status Pesanan
+  creatorUN:      12,  // Nama pengguna kreator
+  contentType:    13,  // Jenis Konten
+  contentId:      14,  // ID Konten
+  commModel:      15,  // commission model
+  commPct:        16,  // Persentase komisi standar
+  estRefComm:     17,  // Est. Acuan Komisi
+  estStdCommPay:  18,  // Perkiraan pembayaran komisi standar
+  actRefComm:     19,  // Acuan Komisi Aktual
+  actCommPay:     20,  // Pembayaran Komisi Aktual
+  shopAdCommPct:  21,  // Persentase komisi Iklan Toko
+  estShopAdComm:  22,  // Perkiraan pembayaran komisi Iklan Toko
+  actShopAdComm:  23,  // Pembayaran komisi Iklan Toko aktual
+  estJointBonus:  24,  // Perkiraan bonus yang ditanggung bersama
+  actJointBonus:  25,  // Bonus sebenarnya yang ditanggung bersama
+  returnItem:     26,  // Pengembalian barang
+  refund:         27,  // Pengembalian dana
+  createdAt:      28,  // Waktu Dibuat
+  paidAt:         29,  // Waktu Pembayaran
+  readyAt:        30,  // Waktu Pesanan Siap Dikirim
+  deliveryAt:     31,  // Order Delivery Time
+  completedAt:    32,  // Waktu Pesanan Selesai
+  commPaidAt:     33,  // Waktu Komisi Dibayar
+  platform:       34,  // Platform
+  agreementType:  35,  // agreement_type
+};
+
+async function importSales(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+
+  try {
+    const ab = await file.arrayBuffer();
+    // Use SheetJS (xlsx) loaded from CDN if available, else manual CSV fallback
+    let rows = [];
+
+    if (file.name.endsWith('.csv')) {
+      const text = new TextDecoder().decode(ab);
+      const lines = text.split('\n').map(l => l.split(',').map(x => x.trim().replace(/^"|"$/g,'')));
+      rows = lines;
+    } else {
+      // xlsx — need SheetJS
+      if (typeof XLSX === 'undefined') {
+        toast('SheetJS not loaded — try uploading a CSV instead', 'err');
+        return;
+      }
+      const wb = XLSX.read(ab, { type: 'array', cellDates: false });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+    }
+
+    if (rows.length < 2) { toast('File appears empty', 'err'); return; }
+
+    // Skip header row, map to objects
+    const header = rows[0];
+    let added = 0, dupes = 0;
+    const existingIds = new Set(salesOrders.map(o => o.orderId));
+
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || r.length < 15) continue;
+      const orderId = String(r[SCOL.orderId] || '').trim();
+      if (!orderId || orderId === 'undefined') continue;
+
+      if (existingIds.has(orderId)) { dupes++; continue; }
+      existingIds.add(orderId);
+
+      salesOrders.push({
+        orderId,
+        product:        String(r[SCOL.product]      || ''),
+        sku:            String(r[SCOL.sku]           || ''),
+        sellerSku:      String(r[SCOL.sellerSku]     || ''),
+        price:          parseFloat(r[SCOL.price])    || 0,
+        paymentAmount:  parseFloat(r[SCOL.paymentAmount]) || 0,
+        currency:       String(r[SCOL.currency]      || 'IDR'),
+        qty:            parseInt(r[SCOL.qty])        || 1,
+        payMethod:      String(r[SCOL.payMethod]     || ''),
+        orderStatus:    String(r[SCOL.orderStatus]   || ''),
+        creatorUN:      String(r[SCOL.creatorUN]     || ''),
+        contentType:    String(r[SCOL.contentType]   || ''),
+        contentId:      String(r[SCOL.contentId]     || ''),
+        commModel:      String(r[SCOL.commModel]     || ''),
+        commPct:        parseFloat(r[SCOL.commPct])  || 0,
+        estRefComm:     parseFloat(r[SCOL.estRefComm])    || 0,
+        actCommPay:     parseFloat(r[SCOL.actCommPay])    || 0,
+        shopAdCommPct:  parseFloat(r[SCOL.shopAdCommPct]) || 0,
+        actShopAdComm:  parseFloat(r[SCOL.actShopAdComm]) || 0,
+        actJointBonus:  parseFloat(r[SCOL.actJointBonus]) || 0,
+        returnItem:     parseInt(r[SCOL.returnItem]) || 0,
+        refund:         parseFloat(r[SCOL.refund])   || 0,
+        createdAt:      String(r[SCOL.createdAt]     || ''),
+        completedAt:    String(r[SCOL.completedAt]   || ''),
+        platform:       String(r[SCOL.platform]      || ''),
+      });
+      added++;
+    }
+
+    const statusEl = G('salesStatus');
+    statusEl.style.display = 'flex';
+    statusEl.innerHTML = `✅ Imported <strong>${added}</strong> new orders — <strong>${dupes}</strong> duplicates skipped — Total: <strong>${salesOrders.length}</strong> orders`;
+
+    renderSalesAnalytics();
+    toast(`Imported ${added} orders (${dupes} dupes skipped)`, 'ok');
+
+  } catch(err) {
+    console.error(err);
+    toast('Import failed: ' + err.message, 'err');
+  }
+}
+
+function clearSalesData() {
+  if (!confirm('Clear all imported sales data?')) return;
+  salesOrders = [];
+  ['salesStatus','salesContentEmp','salesEmp'].forEach(id => { if(G(id)) G(id).style.display=''; });
+  G('salesStatus').style.display = 'none';
+  renderSalesAnalytics();
+  toast('Sales data cleared', 'info');
+}
+
+// ── ANALYTICS ENGINE ──────────────────────────────────────────
+function renderSalesAnalytics() {
+  const srch = (G('salesSrch')?.value || '').toLowerCase();
+  const crF  = G('salesCreatorF')?.value || '';
+  const stF  = G('salesStatusF')?.value || '';
+
+  // ── Build set of Content IDs entered by KOL Specialists ───
+  const registeredContentIds = new Set(
+    kolData.filter(k => k.contentId).map(k => k.contentId)
+  );
+
+  // ── All orders matching search/creator/status filters ─────
+  const allFiltered = salesOrders.filter(o => {
+    const ms = !srch || [o.contentId, o.creatorUN, o.product, o.orderId, o.sellerSku]
+      .some(v => v.toLowerCase().includes(srch));
+    return ms && (!crF || o.creatorUN === crF) && (!stF || o.orderStatus === stF);
+  });
+
+  // ── MATCHED = only orders whose Content ID is in KOL entries ─
+  const matched = allFiltered.filter(o => registeredContentIds.has(o.contentId));
+
+  // Update creator filter (from all orders, not just matched)
+  const crSel = G('salesCreatorF');
+  if (crSel) {
+    const cur = crSel.value;
+    const creators = [...new Set(salesOrders.map(o => o.creatorUN).filter(Boolean))].sort();
+    crSel.innerHTML = '<option value="">All Creators</option>' +
+      creators.map(cr => `<option value="${cr}">${cr}</option>`).join('');
+    crSel.value = cur;
+  }
+
+  // ── KPI: computed only from MATCHED completed orders ──────
+  const completed = matched.filter(o =>
+    o.orderStatus === 'Selesai' || o.orderStatus.toLowerCase().includes('complete')
+  );
+
+  const totalGMV     = completed.reduce((s, o) => s + (o.price * o.qty), 0);
+  const totalRefunds = completed.reduce((s, o) => s + o.refund, 0);
+  const netGMV       = totalGMV - totalRefunds;
+  const totalComm    = completed.reduce((s, o) => s + o.actCommPay, 0);
+  const totalReturns = matched.reduce((s, o) => s + o.returnItem, 0);
+  const totalOrders  = matched.length;
+  const aov          = totalOrders > 0 ? totalGMV / totalOrders : 0;
+  const commRate     = totalGMV > 0 ? (totalComm / totalGMV * 100) : 0;
+  const returnRate   = totalOrders > 0 ? (totalReturns / totalOrders * 100) : 0;
+
+  // Aggregate TikTok stats only for matched content IDs
+  let totalViews = 0, totalLikes = 0, totalComments = 0, statCount = 0;
+  // Build a map: contentId → KOL entry stats
+  const cidStats = {};
+  kolData.forEach(k => {
+    if (!k.contentId) return;
+    const ch = ttCache[k.id];
+    if (ch) {
+      cidStats[k.contentId] = {
+        likes:    parseInt(ch.likes)    || 0,
+        views:    parseInt(ch.views)    || 0,
+        comments: parseInt(ch.comments) || 0,
+      };
+    }
+  });
+  // Sum stats for matched content IDs that appear in orders
+  const seenCids = new Set(matched.map(o => o.contentId));
+  seenCids.forEach(cid => {
+    const st = cidStats[cid];
+    if (st && st.views > 0) {
+      totalViews    += st.views;
+      totalLikes    += st.likes;
+      totalComments += st.comments;
+      statCount++;
+    }
+  });
+
+  // Engagement Rate = (Likes + Comments) / Views × 100
+  const avgEng = totalViews > 0
+    ? ((totalLikes + totalComments) / totalViews * 100).toFixed(2) + '%'
+    : '—';
+
+  // Conversion Rate = Total Matched Orders / Total Views × 100
+  const cvr = totalViews > 0
+    ? (totalOrders / totalViews * 100).toFixed(4) + '%'
+    : '—';
+
+  // GMV per View = Total Matched GMV / Total Views
+  const gmvPerView = totalViews > 0
+    ? fmtN(Math.round(totalGMV / totalViews))
+    : '—';
+
+  // Update KPI cards
+  G('sk-gmv').textContent     = fmtN(totalGMV);
+  G('sk-orders').textContent  = totalOrders;
+  G('sk-netgmv').textContent  = fmtN(netGMV);
+  G('sk-aov').textContent     = fmtN(Math.round(aov));
+  G('sk-comm').textContent    = fmtN(totalComm);
+  G('sk-eng').textContent     = avgEng;
+  G('sk-cvr').textContent     = cvr;
+  G('sk-commrate').textContent= commRate > 0 ? commRate.toFixed(2) + '%' : '—';
+  G('sk-retrate').textContent = returnRate > 0 ? returnRate.toFixed(2) + '%' : '—';
+  G('sk-gmvview').textContent = gmvPerView;
+
+  // ── PER-CONTENT TABLE (only matched Content IDs) ──────────
+  const byContent = {};
+  matched.forEach(o => {
+    const cid = o.contentId;
+    if (!byContent[cid]) byContent[cid] = {
+      contentId: cid, creatorUN: o.creatorUN,
+      orders: 0, gmv: 0, commission: 0, returns: 0, refunds: 0
+    };
+    byContent[cid].orders++;
+    byContent[cid].gmv        += o.price * o.qty;
+    byContent[cid].commission += o.actCommPay;
+    byContent[cid].returns    += o.returnItem;
+    byContent[cid].refunds    += o.refund;
+  });
+
+  const contentRows = Object.values(byContent).sort((a, b) => b.gmv - a.gmv);
+  const cbody = G('salesContentBody');
+  const cemp  = G('salesContentEmp');
+
+  if (!contentRows.length) {
+    cbody.innerHTML = '';
+    cemp.style.display = '';
+  } else {
+    cemp.style.display = 'none';
+    cbody.innerHTML = contentRows.map(row => {
+      const kolEntry   = kolData.find(k => k.contentId === row.contentId);
+      const specialist = kolEntry ? (kolEntry.specialist || '—') : '—';
+      const st         = cidStats[row.contentId] || null;
+      const likes      = st ? st.likes    : 0;
+      const views      = st ? st.views    : 0;
+      const comments   = st ? st.comments : 0;
+
+      // Engagement Rate = (Likes + Comments) / Views × 100
+      const eng   = views > 0 ? (((likes + comments) / views) * 100).toFixed(2) + '%' : '—';
+      // Conversion Rate = Orders / Views × 100
+      const cvr2  = views > 0 ? ((row.orders / views) * 100).toFixed(4) + '%' : '—';
+      // GMV / View
+      const gv    = views > 0 ? fmtN(Math.round(row.gmv / views)) : '—';
+      // Return Rate
+      const rr    = row.orders > 0 ? ((row.returns / row.orders) * 100).toFixed(1) + '%' : '0%';
+      // Net GMV
+      const netG  = row.gmv - row.refunds;
+
+      return `<tr>
+        <td><span class="tag">${row.contentId}</span></td>
+        <td><span style="font-weight:500">@${row.creatorUN}</span></td>
+        <td style="color:var(--t2)">${specialist}</td>
+        <td><strong>${row.orders}</strong></td>
+        <td style="color:var(--grn);font-weight:600">${fmtN(row.gmv)}</td>
+        <td style="color:var(--teal);font-size:11px">${fmtN(netG)}</td>
+        <td style="color:var(--acc)">${fmtN(row.commission)}</td>
+        <td style="color:${row.returns>0?'var(--red)':'var(--t3)'}">${row.returns} <span style="font-size:10px;color:var(--t3)">(${rr})</span></td>
+        <td>${views ? fmtN(views) : '<span style="color:var(--t3)">—</span>'}</td>
+        <td>${likes ? fmtN(likes) : '<span style="color:var(--t3)">—</span>'}</td>
+        <td style="font-weight:500;color:var(--pur)">${eng}
+          <div style="font-size:10px;color:var(--t3);font-family:var(--fm)">(L+C)÷V</div>
+        </td>
+        <td style="color:var(--grn);font-family:var(--fm);font-size:11px">${cvr2}
+          <div style="font-size:10px;color:var(--t3)">Ord÷Views</div>
+        </td>
+        <td style="font-family:var(--fm);font-size:11px;color:var(--teal)">${gv}
+          <div style="font-size:10px;color:var(--t3)">IDR/view</div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── RAW ORDERS TABLE (all filtered, not just matched) ─────
+  const body = G('salesBody'), emp = G('salesEmp');
+  const matchBadge = o => registeredContentIds.has(o.contentId)
+    ? '<span style="font-size:9px;background:var(--grns);color:var(--grn);padding:1px 5px;border-radius:3px;margin-left:4px;font-family:var(--fm)">✓ KOL</span>'
+    : '<span style="font-size:9px;background:var(--bg3);color:var(--t3);padding:1px 5px;border-radius:3px;margin-left:4px;font-family:var(--fm)">—</span>';
+
+  G('salesOrderCount').textContent = `(${allFiltered.length} total · ${matched.length} matched to KOL)`;
+
+  if (!allFiltered.length) {
+    body.innerHTML = ''; emp.style.display = '';
+  } else {
+    emp.style.display = 'none';
+    body.innerHTML = allFiltered.map(o => {
+      const statusColor = o.orderStatus.toLowerCase().includes('selesai') || o.orderStatus.toLowerCase().includes('complete')
+        ? 'var(--grn)' : o.orderStatus.toLowerCase().includes('batal') || o.orderStatus.toLowerCase().includes('cancel')
+        ? 'var(--red)' : 'var(--yel)';
+      return `<tr>
+        <td class="mono" style="font-size:10px">${o.orderId.slice(-12)}</td>
+        <td style="max-width:160px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.product}">${o.product.slice(0,40)}${o.product.length>40?'...':''}</td>
+        <td><span class="tag">${o.sellerSku||o.sku||'—'}</span></td>
+        <td class="mono" style="font-size:11px">@${o.creatorUN}</td>
+        <td><span class="tag">${o.contentId.slice(-12)||'—'}</span>${matchBadge(o)}</td>
+        <td style="color:var(--t2);font-family:var(--fm);font-size:11px">${fmtN(o.price)}</td>
+        <td style="color:var(--grn);font-family:var(--fm);font-size:11px">${fmtN(o.paymentAmount)}</td>
+        <td style="text-align:center">${o.qty}</td>
+        <td><span style="color:${statusColor};font-size:11px;font-family:var(--fm)">${o.orderStatus}</span></td>
+        <td style="text-align:center;font-family:var(--fm);font-size:11px">${o.commPct}%</td>
+        <td style="color:var(--acc);font-family:var(--fm);font-size:11px">${fmtN(o.actCommPay)}</td>
+        <td style="color:${o.returnItem>0?'var(--red)':'var(--t3)'};text-align:center">${o.returnItem}</td>
+        <td class="mono" style="font-size:10px;color:var(--t3)">${o.createdAt.slice(0,10)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  buildSalesCharts(matched);
+}
+
+// alias for filter changes
+function renderSalesTable() { renderSalesAnalytics(); }
+
+// ── SALES CHARTS ───────────────────────────────────────────────
+function buildSalesCharts(filtered) {
+  const { gc, tc, lc } = getCD();
+
+  const barOpts = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false, labels: { color: lc, font: { family: 'Roboto', size: 11 } } }, tooltip: { bodyFont: { family: 'Roboto' } } },
+    scales: { x: { grid: { color: gc }, ticks: { color: tc, font: { family: 'Roboto Mono', size: 10 } } }, y: { grid: { color: gc }, ticks: { color: tc, font: { family: 'Roboto Mono', size: 10 }, callback: v => fmtN(v) }, beginAtZero: true } }
+  };
+
+  const donutOpts = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'right', labels: { color: lc, font: { family: 'Roboto', size: 11 }, boxWidth: 12 } } }
+  };
+
+  // ── GMV by date ───────────────────────────────────────────
+  const gmvByDate = {};
+  filtered.forEach(o => {
+    const d = o.createdAt.slice(0,10);
+    if (d) gmvByDate[d] = (gmvByDate[d]||0) + o.price * o.qty;
+  });
+  const sortedDates = Object.keys(gmvByDate).sort();
+  const gmvVals = sortedDates.map(d => gmvByDate[d]);
+
+  if (salesCharts.gmv) salesCharts.gmv.destroy();
+  salesCharts.gmv = new Chart(G('chGMV'), {
+    type: 'bar',
+    data: { labels: sortedDates, datasets: [{ label: 'GMV', data: gmvVals, backgroundColor: 'rgba(255,159,10,.7)', borderRadius: 5 }] },
+    options: barOpts
+  });
+
+  // ── Top creators by GMV ───────────────────────────────────
+  const gmvByCreator = {};
+  filtered.forEach(o => {
+    gmvByCreator[o.creatorUN] = (gmvByCreator[o.creatorUN]||0) + o.price * o.qty;
+  });
+  const top10 = Object.entries(gmvByCreator).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  if (salesCharts.creators) salesCharts.creators.destroy();
+  salesCharts.creators = new Chart(G('chCreators'), {
+    type: 'bar',
+    data: { labels: top10.map(x=>x[0]), datasets: [{ label: 'GMV', data: top10.map(x=>x[1]), backgroundColor: 'rgba(10,132,255,.7)', borderRadius: 5 }] },
+    options: { ...barOpts, indexAxis: 'y' }
+  });
+
+  // ── Orders by status ─────────────────────────────────────
+  const byStatus = {};
+  filtered.forEach(o => { byStatus[o.orderStatus] = (byStatus[o.orderStatus]||0) + 1; });
+  if (salesCharts.status) salesCharts.status.destroy();
+  salesCharts.status = new Chart(G('chOrderStatus'), {
+    type: 'doughnut',
+    data: { labels: Object.keys(byStatus), datasets: [{ data: Object.values(byStatus), backgroundColor: ['#32d74b','#ff453a','#ffd60a','#0a84ff','#bf5af2'], borderWidth: 0 }] },
+    options: donutOpts
+  });
+
+  // ── Commission breakdown ──────────────────────────────────
+  const stdComm  = filtered.reduce((s,o) => s + o.actCommPay, 0);
+  const shopComm = filtered.reduce((s,o) => s + o.actShopAdComm, 0);
+  const bonus    = filtered.reduce((s,o) => s + o.actJointBonus, 0);
+  if (salesCharts.comm) salesCharts.comm.destroy();
+  salesCharts.comm = new Chart(G('chCommission'), {
+    type: 'doughnut',
+    data: { labels: ['Standard Commission', 'Shop Ad Commission', 'Joint Bonus'], datasets: [{ data: [stdComm, shopComm, bonus], backgroundColor: ['#ff9f0a','#0a84ff','#32d74b'], borderWidth: 0 }] },
+    options: donutOpts
+  });
+}
+
+// ── CONTENT ID UNIQUENESS CHECK ────────────────────────────────
+function checkContentIdUnique(contentId, excludeRowId = null) {
+  if (!contentId) return true;
+  return !kolData.some(k => k.contentId === contentId && k.id !== excludeRowId);
+}
+
+// Drop zone for sales
+document.addEventListener('DOMContentLoaded', () => {
+  const sdz = G('salesDz');
+  if (!sdz) return;
+  sdz.addEventListener('dragover', e => { e.preventDefault(); sdz.classList.add('dov'); });
+  sdz.addEventListener('dragleave', () => sdz.classList.remove('dov'));
+  sdz.addEventListener('drop', e => {
+    e.preventDefault(); sdz.classList.remove('dov');
+    const f = e.dataTransfer.files[0];
+    if (f) importSales({ target: { files: [f], value: '' } });
+    else toast('Please drop an Excel or CSV file', 'err');
+  });
+});
+
+</script>
+</body>
+</html>
